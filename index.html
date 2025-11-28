@@ -222,8 +222,6 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL = "https://uqwiertkefmwoqrbnfqy.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxd2llcnRrZWZtd29xcmJuZnF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyNTMyNjAsImV4cCI6MjA3OTgyOTI2MH0.1f2ywRxoXAPBmtOZTT51SlNOIKDN8ji547S4Pw7u83o";
- // replace or use js/supabase.js module
-const SUPABASE_ANON_KEY = "";
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* Basic app state (will be overridden by modules) */
@@ -325,9 +323,9 @@ $('pd_nit').addEventListener('input', async function(){
   const text = this.value.trim();
   const box = $('fundResults');
   if(text.length<2){ box.style.display='none'; $('pd_fund_info').innerHTML=''; window.selectedFoundationId = null; return; }
-  const { data } = await supabase.from('foundations').select('*').or(`name.ilike.%${text}%,nit.ilike.%${text}%`).order('name');
+  const { data } = await supabase.from('fundaciones').select('*').or(`nombre.ilike.%${text}%,nit.ilike.%${text}%`).order('nombre');
   if(!data || data.length===0){ box.innerHTML = '<div>No hay coincidencias</div>'; box.style.display='block'; return; }
-  box.innerHTML = data.map(f=>`<div onclick="selectFoundation(${f.id},'${safeText(f.name)}','${safeText(f.nit)}')"><b>${f.name}</b><br><small>NIT: ${f.nit}</small></div>`).join('');
+  box.innerHTML = data.map(f=>`<div onclick="selectFoundation(${f.id},'${safeText(f.nombre)}','${safeText(f.nit)}')"><b>${f.nombre}</b><br><small>NIT: ${f.nit}</small></div>`).join('');
   box.style.display='block';
 });
 
@@ -337,7 +335,7 @@ window.selectFoundation = async function(id,name,nit){
   window.selectedFoundationId = id;
   $('pd_fund_info').innerHTML = `<b>${name}</b>`;
   // load shipping points for this foundation into pointResults container for selection
-  const { data } = await supabase.from('shipping_points').select('*').eq('foundation_id', id).order('barrio');
+  const { data } = await supabase.from('puntos_envio').select('*').eq('fundacion_id', id).order('barrio');
   const box = $('pointResults');
   if(!data || data.length===0){ box.innerHTML = '<div>No hay puntos registrados</div>'; box.style.display='block'; $('pd_point_address').value=''; $('btnMaps').style.display='none'; $('btnWaze').style.display='none'; return; }
   box.innerHTML = data.map(p=>`<div onclick="selectPoint(${p.id},'${safeText(p.barrio)}','${safeText(p.ciudad)}')">${p.barrio} — ${p.localidad} — ${p.ciudad}</div>`).join('');
@@ -349,7 +347,7 @@ window.selectPoint = async function(id,barrio,ciudad){
   $('pointResults').style.display='none';
   window.selectedShippingPointId = id;
   // load point address
-  const { data, error } = await supabase.from('shipping_points').select('barrio,localidad,ciudad,direccion').eq('id', id).single();
+  const { data, error } = await supabase.from('puntos_envio').select('barrio,localidad,ciudad,direccion').eq('id', id).single();
   if(error || !data){ $('pd_point_address').value=''; $('btnMaps').style.display='none'; $('btnWaze').style.display='none'; return; }
   const full = `${data.barrio}, ${data.localidad}, ${data.ciudad}${data.direccion ? ' - '+data.direccion : ''}`;
   $('pd_point_address').value = full;
@@ -369,9 +367,9 @@ $('driverSearch').addEventListener('input', async function(){
   const txt = this.value.trim();
   const box = $('driverResults');
   if(txt.length<2){ box.style.display='none'; return; }
-  const { data } = await supabase.from('drivers').select('*').or(`name.ilike.%${txt}%,document.ilike.%${txt}%`).order('name');
+  const { data } = await supabase.from('conductores').select('*').or(`nombre.ilike.%${txt}%,documento.ilike.%${txt}%`).order('nombre');
   if(!data || data.length===0){ box.innerHTML = '<div>No hay coincidencias</div>'; box.style.display='block'; return; }
-  box.innerHTML = data.map(d=>`<div onclick="selectDriver(${d.id},'${safeText(d.name)}','${safeText(d.document)}')"><b>${d.name}</b><br><small>${d.document}</small></div>`).join('');
+  box.innerHTML = data.map(d=>`<div onclick="selectDriver(${d.id},'${safeText(d.nombre)}','${safeText(d.documento)}')"><b>${d.nombre}</b><br><small>${d.documento}</small></div>`).join('');
   box.style.display='block';
 });
 window.selectDriver = function(id,name,doc){ $('driverSearch').value = `${name} (${doc})`; $('driverResults').style.display='none'; window.selectedDriverId = id; };
@@ -381,9 +379,9 @@ $('plateSearch').addEventListener('input', async function(){
   const txt = this.value.trim();
   const box = $('plateResults');
   if(txt.length<2){ box.style.display='none'; return; }
-  const { data } = await supabase.from('plates').select('*').ilike('plate', `%${txt}%`).order('plate');
+  const { data } = await supabase.from('placas').select('*').ilike('placa', `%${txt}%`).order('placa');
   if(!data || data.length===0){ box.innerHTML='<div>No hay coincidencias</div>'; box.style.display='block'; return; }
-  box.innerHTML = data.map(p=>`<div onclick="selectPlate('${safeText(p.plate)}','${safeText(p.type)}',${p.id})"><b>${p.plate}</b><br><small>${p.type}</small></div>`).join('');
+  box.innerHTML = data.map(p=>`<div onclick="selectPlate('${safeText(p.placa)}','${safeText(p.tipo)}',${p.id})"><b>${p.placa}</b><br><small>${p.tipo}</small></div>`).join('');
   box.style.display='block';
 });
 window.selectPlate = function(plate,type,id){ $('plateSearch').value = `${plate} (${type})`; $('plateResults').style.display='none'; window.selectedPlate = plate; window.selectedPlateId = id; };
@@ -393,9 +391,9 @@ $('itemSearch').addEventListener('input', async function(){
   const txt = this.value.trim();
   const box = $('itemResults');
   if(txt.length<2){ box.style.display='none'; return; }
-  const { data } = await supabase.from('items').select('*').ilike('name', `%${txt}%`).order('name');
+  const { data } = await supabase.from('items').select('*').ilike('nombre', `%${txt}%`).order('nombre');
   if(!data || data.length===0){ box.innerHTML='<div>No hay coincidencias</div>'; box.style.display='block'; return; }
-  box.innerHTML = data.map(it=>`<div onclick="selectItem(${it.id},'${safeText(it.name)}',${it.price})"><b>${it.name}</b><br><small>$${it.price}</small></div>`).join('');
+  box.innerHTML = data.map(it=>`<div onclick="selectItem(${it.id},'${safeText(it.nombre)}',${it.precio})"><b>${it.nombre}</b><br><small>$${it.precio}</small></div>`).join('');
   box.style.display='block';
 });
 window.selectItem = function(id,name,price){ $('itemSearch').value = `${name}`; $('itemResults').style.display='none'; window.selectedItem = {id,name,price}; };
@@ -435,13 +433,16 @@ $('btnAddPedido').addEventListener('click', async function(){
   // build pedido
   const subtotal = currentPedidoItems.reduce((s,it)=> s + (it.price||0)*(it.qty||1), 0);
   const pedido = {
-    foundation_id: window.selectedFoundationId,
-    shipping_point_id: window.selectedShippingPointId,
-    driver_id: window.selectedDriverId,
-    plate_id: window.selectedPlateId || null,
-    items: currentPedidoItems,
+    codigo: 'PED-'+Date.now(),
+    fundacion_id: window.selectedFoundationId,
+    punto_id: window.selectedShippingPointId,
+    conductor_id: window.selectedDriverId,
+    placa_id: window.selectedPlateId || null,
+    peaje: 0,
+    transporte: 0,
     total: subtotal,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    items: currentPedidoItems
   };
   const { error } = await supabase.from('pedidos').insert(pedido);
   if(error) return alert('Error creando pedido: '+error.message);
@@ -453,16 +454,16 @@ $('btnAddPedido').addEventListener('click', async function(){
 
 /* Load pedidos list */
 async function loadPedidos(){
-  const { data } = await supabase.from('pedidos').select('*, foundation:foundations(name), point:shipping_points(barrio)').order('created_at', {ascending:false});
+  const { data } = await supabase.from('pedidos').select('*, foundation:fundaciones(nombre), point:puntos_envio(barrio)').order('created_at', {ascending:false});
   const tbody = $('pedidosBody'); tbody.innerHTML = '';
   if(!data) return;
   data.forEach(p=>{
     const kilos = (p.items||[]).reduce((s,it)=> s + (it.kgs||0), 0);
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${p.id}</td><td>${p.foundation?.name||''}</td><td>${new Date(p.created_at).toLocaleString()}</td><td>${kilos}</td><td>$${p.total||0}</td>
+    tr.innerHTML = `<td>${p.id}</td><td>${p.foundation?.nombre||''}</td><td>${new Date(p.created_at).toLocaleString()}</td><td>${kilos}</td><td>$${p.total||0}</td>
       <td>
-        <button onclick="openPedidoMaps(${p.shipping_point_id})">Mapa</button>
-        <button onclick="openPedidoWaze(${p.shipping_point_id})">Waze</button>
+        <button onclick="openPedidoMaps(${p.punto_id})">Mapa</button>
+        <button onclick="openPedidoWaze(${p.punto_id})">Waze</button>
         <button onclick="viewPedido(${p.id})">Ver</button>
       </td>`;
     tbody.appendChild(tr);
@@ -472,13 +473,13 @@ window.loadPedidos = loadPedidos;
 loadPedidos();
 
 window.openPedidoMaps = async function(pointId){
-  const { data, error } = await supabase.from('shipping_points').select('barrio,localidad,ciudad,direccion').eq('id', pointId).single();
+  const { data, error } = await supabase.from('puntos_envio').select('barrio,localidad,ciudad,direccion').eq('id', pointId).single();
   if(error || !data) return alert('No se pudo obtener dirección');
   const full = `${data.barrio}, ${data.localidad}, ${data.ciudad}${data.direccion ? ' - '+data.direccion : ''}`;
   window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(full)}`,'_blank');
 };
 window.openPedidoWaze = async function(pointId){
-  const { data, error } = await supabase.from('shipping_points').select('barrio,localidad,ciudad,direccion').eq('id', pointId).single();
+  const { data, error } = await supabase.from('puntos_envio').select('barrio,localidad,ciudad,direccion').eq('id', pointId).single();
   if(error || !data) return alert('No se pudo obtener dirección');
   const full = `${data.barrio}, ${data.localidad}, ${data.ciudad}${data.direccion ? ' - '+data.direccion : ''}`;
   window.open(`https://www.waze.com/ul?ll=&q=${encodeURIComponent(full)}&navigate=yes`,'_blank');
@@ -486,15 +487,82 @@ window.openPedidoWaze = async function(pointId){
 
 /* Generic view functions for drivers/items/funds */
 window.viewPedido = async function(pedidoId){
-  const { data } = await supabase.from('pedidos').select('*, foundation:foundations(*), point:shipping_points(*), driver:drivers(*)').eq('id', pedidoId).single();
+  const { data } = await supabase.from('pedidos').select('*, foundation:fundaciones(*), point:puntos_envio(*), driver:conductores(*)').eq('id', pedidoId).single();
   if(!data) return alert('No encontrado');
   const o = data;
-  const html = `<b>ID:</b> ${o.id}<br><b>Fundación:</b> ${o.foundation?.name || ''}<br><b>Punto:</b> ${o.point?.barrio || ''} — ${o.point?.localidad || ''}<br><b>Conductor:</b> ${o.driver?.name || ''}<br><b>Items:</b><ul>${(o.items||[]).map(it=>'<li>'+it.name+' x'+it.qty+'</li>').join('')}</ul>`;
+  const html = `<b>ID:</b> ${o.id}<br><b>Fundación:</b> ${o.foundation?.nombre || ''}<br><b>Punto:</b> ${o.point?.barrio || ''} — ${o.point?.localidad || ''}<br><b>Conductor:</b> ${o.driver?.nombre || ''}<br><b>Items:</b><ul>${(o.items||[]).map(it=>'<li>'+it.name+' x'+it.qty+'</li>').join('')}</ul>`;
   showInfo('Pedido '+o.id, html);
 };
 
+/* LOGIN UI and logic */
+// create login modal DOM if not present
+function ensureLoginModal(){
+  if(document.getElementById('loginModal')) return;
+  const div = document.createElement('div');
+  div.id = 'loginModal';
+  div.style = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:100000';
+  div.innerHTML = `
+    <div style="background:#fff;padding:18px;border-radius:10px;width:320px;box-shadow:0 8px 30px rgba(0,0,0,0.2)">
+      <h3 style="margin-top:0;text-align:center">Iniciar sesión</h3>
+      <label>Usuario</label><input id="lg_user" style="width:100%;margin-bottom:8px">
+      <label>Contraseña</label><input id="lg_pass" type="password" style="width:100%;margin-bottom:8px">
+      <div style="display:flex;gap:8px;margin-top:12px"><button id="lg_btn" class="primary" style="flex:1">Ingresar</button><button id="lg_demo" style="flex:1">Demo</button></div>
+      <div id="lg_msg" class="small" style="margin-top:8px;color:#ff0000;display:none"></div>
+    </div>`;
+  document.body.appendChild(div);
+  document.getElementById('lg_btn').addEventListener('click', doLogin);
+  document.getElementById('lg_demo').addEventListener('click', ()=>{ document.getElementById('lg_user').value='admin'; document.getElementById('lg_pass').value='3134630773'; doLogin(); });
+}
+
+async function doLogin(){
+  const u = document.getElementById('lg_user').value.trim();
+  const p = document.getElementById('lg_pass').value.trim();
+  const msg = document.getElementById('lg_msg');
+  if(!u||!p){ msg.style.display='block'; msg.innerText='Usuario y contraseña son requeridos'; return; }
+  msg.style.display='none';
+  // query users table in supabase
+  const { data, error } = await supabase.from('users').select('*').eq('username', u).eq('pass', p).single();
+  if(error || !data){ msg.style.display='block'; msg.innerText='Usuario o clave incorrectos'; return; }
+  // success
+  window.currentUser = data;
+  // store in sessionStorage
+  sessionStorage.setItem('erp_user', JSON.stringify({id:data.id, username:data.username, role_id:data.role_id}));
+  // remove modal
+  const m = document.getElementById('loginModal'); if(m) m.remove();
+  // set header and logout button
+  document.getElementById('headerUser').innerText = data.username + (data.role_id? '':'') ;
+  document.getElementById('btnLogout').style.display = 'inline-block';
+  // apply role permissions if available
+  applyRolePermissions();
+  // load initial data
+  loadRoles(); loadPedidos();
+}
+
+// show login if no session
+function checkSessionAndLogin(){
+  const s = sessionStorage.getItem('erp_user');
+  if(s){ try{ window.currentUser = JSON.parse(s); document.getElementById('headerUser').innerText = window.currentUser.username; document.getElementById('btnLogout').style.display = 'inline-block'; applyRolePermissions(); return; }catch(e){} }
+  ensureLoginModal();
+}
+
+async function applyRolePermissions(){
+  try{
+    if(!window.currentUser || !window.currentUser.role_id) return;
+    const { data: perms } = await supabase.from('role_permissions').select('*').eq('role_id', window.currentUser.role_id);
+    if(!perms) return;
+    // hide/show sidebar buttons based on module names mapping
+    perms.forEach(p=>{
+      const btn = document.querySelector(`#sidebar button[data-sec="${p.module}"]`);
+      if(btn) btn.style.display = p.can_view ? 'block' : 'none';
+    });
+  }catch(e){ console.error('applyRolePermissions', e); }
+}
+
 /* Initial navigation */
 document.querySelectorAll('#sidebar button').forEach(b=>b.addEventListener('click', ()=> show(b.dataset.sec)));
+ 
+// Check session and show login if needed
+checkSessionAndLogin();
 show('dashboard');
 
 </script>
