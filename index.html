@@ -1457,4 +1457,357 @@ function aplicarPermisos() {
   to   { opacity:1; transform:translateY(0);   }
 }
 </style>
+<section id="auditoria" class="card hidden">
+  <h2>Auditoría</h2>
+  <div id="auditContainer"></div>
+</section>
+<section id="seguimiento" class="card hidden">
+  <h2>Seguimiento</h2>
+
+  <div class="card">
+    <h3>Agregar Seguimiento</h3>
+
+    <label>Pedido ID</label>
+    <input id="seg_pedido_id" type="number">
+
+    <label>Estado</label>
+    <select id="seg_estado">
+      <option value="En Bodega">En Bodega</option>
+      <option value="En Ruta">En Ruta</option>
+      <option value="Entregado">Entregado</option>
+    </select>
+
+    <label>Descripción</label>
+    <textarea id="seg_desc"></textarea>
+
+    <button id="btnAddSeguimiento" class="primary" style="margin-top:10px">Agregar</button>
+  </div>
+
+  <div class="card">
+    <h3>Buscar Seguimiento de Pedido</h3>
+
+    <label>ID del Pedido</label>
+    <input id="seg_buscar_id" type="number">
+    <button id="btnBuscarSeguimiento" class="primary" style="margin-top:10px">Buscar</button>
+
+    <div id="seg_result" style="margin-top:12px"></div>
+  </div>
+</section>
+.timeline {
+  border-left: 3px solid #0a57ff;
+  padding-left: 14px;
+  margin-left: 14px;
+}
+.timeline .event {
+  margin-bottom: 14px;
+}
+.timeline .event b {
+  color: #0a57ff;
+}
+/* ============================
+   AUDITORÍA
+============================ */
+async function logAuditoria(accion, detalle = "") {
+  if (!window.currentUser) return;
+
+  await supabase.from("auditoria").insert({
+    user_id: window.currentUser.id,
+    accion,
+    detalle,
+    fecha: new Date().toISOString()
+  });
+}
+
+async function loadAuditoria() {
+  const { data } = await supabase
+    .from("auditoria")
+    .select("*, user:users(username)")
+    .order("fecha", { ascending: false });
+
+  const box = document.getElementById("auditContainer");
+  if (!data) {
+    box.innerHTML = "<p>No hay registros</p>";
+    return;
+  }
+
+  box.innerHTML = data
+    .map(
+      a => `
+      <div class="card">
+        <b>Usuario:</b> ${a.user?.username || "N/A"}<br>
+        <b>Acción:</b> ${a.accion}<br>
+        <b>Detalle:</b> ${a.detalle}<br>
+        <b>Fecha:</b> ${new Date(a.fecha).toLocaleString()}
+      </div>
+    `
+    )
+    .join("");
+}
+
+/* ============================
+   SEGUIMIENTO
+============================ */
+document.getElementById("btnAddSeguimiento").addEventListener("click", addSeguimiento);
+
+async function addSeguimiento() {
+  const pedido_id = Number(document.getElementById("seg_pedido_id").value);
+  const estado = document.getElementById("seg_estado").value;
+  const descripcion = document.getElementById("seg_desc").value;
+
+  if (!pedido_id) {
+    alert("Ingrese ID del pedido");
+    return;
+  }
+
+  const { error } = await supabase.from("seguimiento").insert({
+    pedido_id,
+    estado,
+    descripcion,
+    fecha: new Date().toISOString()
+  });
+
+  if (error) {
+    alert("Error agregando seguimiento: " + error.message);
+    return;
+  }
+
+  await logAuditoria("Seguimiento agregado", `Pedido ${pedido_id}`);
+
+  alert("Seguimiento agregado");
+}
+
+document.getElementById("btnBuscarSeguimiento").addEventListener("click", loadSeguimiento);
+
+async function loadSeguimiento() {
+  const id = Number(document.getElementById("seg_buscar_id").value);
+  const box = document.getElementById("seg_result");
+
+  if (!id) {
+    box.innerHTML = "<p>Ingrese el ID del pedido</p>";
+    return;
+  }
+
+  const { data } = await supabase
+    .from("seguimiento")
+    .select("*")
+    .eq("pedido_id", id)
+    .order("fecha", { ascending: true });
+
+  if (!data || data.length === 0) {
+    box.innerHTML = "<p>No hay seguimiento para este pedido.</p>";
+    return;
+  }
+
+  box.innerHTML =
+    `<div class="timeline">` +
+    data
+      .map(
+        s => `
+        <div class="event">
+          <b>${s.estado}</b><br>
+          ${s.descripcion}<br>
+          <small>${new Date(s.fecha).toLocaleString()}</small>
+        </div>
+      `
+      )
+      .join("") +
+    `</div>`;
+}
+<button id="menu_reportes" data-sec="reportes">Reportes</button>
+<section id="reportes" class="card hidden">
+  <h2>Reportes</h2>
+
+  <div class="card">
+    <h3>Generar Reporte</h3>
+
+    <label>Fundación</label>
+    <input id="rep_fund" placeholder="Buscar fundación">
+    <div id="repFundResults" class="autocomplete"></div>
+
+    <label>Fecha inicial</label>
+    <input id="rep_fecha_ini" type="date">
+
+    <label>Fecha final</label>
+    <input id="rep_fecha_fin" type="date">
+
+    <button id="btnGenerarReporte" class="primary" style="margin-top:10px">Generar</button>
+  </div>
+
+  <div id="repContainer" class="card"></div>
+
+  <div class="card">
+    <h3>Gráficas</h3>
+    <canvas id="chartKg" height="150"></canvas>
+    <canvas id="chartPedidos" height="150" style="margin-top:30px"></canvas>
+  </div>
+
+  <div class="card" style="display:flex;gap:10px">
+    <button class="primary" id="btnExcel">Exportar a Excel</button>
+    <button class="primary" id="btnPDF" style="background:#e11d48">Exportar a PDF</button>
+  </div>
+</section>
+/* ============================
+   AUTOCOMPLETE FUNDACIONES PARA REPORTES
+============================ */
+document.getElementById("rep_fund").addEventListener("input", async function () {
+  const txt = this.value.trim();
+  const box = document.getElementById("repFundResults");
+
+  if (txt.length < 2) {
+    box.style.display = "none";
+    return;
+  }
+
+  const { data } = await supabase
+    .from("fundaciones")
+    .select("*")
+    .ilike("nombre", `%${txt}%`);
+
+  if (!data || data.length === 0) {
+    box.innerHTML = "<div>No hay coincidencias</div>";
+    box.style.display = "block";
+    return;
+  }
+
+  box.innerHTML = data
+    .map(
+      f =>
+        `<div onclick="selectRepFund(${f.id}, '${f.nombre.replace(/'/g, "\\'")}')">${f.nombre}</div>`
+    )
+    .join("");
+
+  box.style.display = "block";
+});
+
+window.selectRepFund = function (id, nombre) {
+  document.getElementById("rep_fund").value = nombre;
+  document.getElementById("repFundResults").style.display = "none";
+  window.repFundID = id;
+};
+
+/* ============================
+   GENERAR REPORTE
+============================ */
+document.getElementById("btnGenerarReporte").addEventListener("click", loadReporte);
+
+async function loadReporte() {
+  if (!window.repFundID) {
+    alert("Seleccione una fundación válida");
+    return;
+  }
+
+  const f1 = document.getElementById("rep_fecha_ini").value;
+  const f2 = document.getElementById("rep_fecha_fin").value;
+
+  const { data } = await supabase
+    .from("pedidos")
+    .select("*, foundation:fundaciones(nombre)")
+    .eq("fundacion_id", window.repFundID)
+    .gte("created_at", f1)
+    .lte("created_at", f2)
+    .order("created_at", { ascending: true });
+
+  const box = document.getElementById("repContainer");
+
+  if (!data || data.length === 0) {
+    box.innerHTML = "<p>No hay datos para este rango</p>";
+    return;
+  }
+
+  let totalKg = 0;
+  let totalPedidos = data.length;
+
+  box.innerHTML =
+    "<h3>Resultados</h3>" +
+    data
+      .map(
+        p => `
+      <div class="card">
+        <b>Pedido:</b> ${p.id}<br>
+        <b>Fecha:</b> ${new Date(p.created_at).toLocaleString()}<br>
+        <b>Total:</b> $${p.total}
+      </div>
+    `
+      )
+      .join("");
+
+  // calcular kg
+  data.forEach(p => {
+    p.items?.forEach(i => {
+      totalKg += i.kgs || 0;
+    });
+  });
+
+  loadGraficas(totalKg, totalPedidos);
+}
+
+/* ============================
+   GRÁFICAS
+============================ */
+let chartKg, chartPedidos;
+
+function loadGraficas(kg, pedidos) {
+  const ctx1 = document.getElementById("chartKg");
+  const ctx2 = document.getElementById("chartPedidos");
+
+  if (chartKg) chartKg.destroy();
+  if (chartPedidos) chartPedidos.destroy();
+
+  chartKg = new Chart(ctx1, {
+    type: "bar",
+    data: {
+      labels: ["Kilos Transportados"],
+      datasets: [
+        {
+          data: [kg]
+        }
+      ]
+    }
+  });
+
+  chartPedidos = new Chart(ctx2, {
+    type: "bar",
+    data: {
+      labels: ["Pedidos"],
+      datasets: [
+        {
+          data: [pedidos]
+        }
+      ]
+    }
+  });
+}
+
+/* ============================
+   EXPORTAR A EXCEL
+============================ */
+document.getElementById("btnExcel").addEventListener("click", exportExcel);
+
+function exportExcel() {
+  const wb = XLSX.utils.book_new();
+  const table = document.getElementById("repContainer");
+
+  const rows = [...table.querySelectorAll(".card")].map(div => ({
+    Pedido: div.innerText.split("\n")[0].replace("Pedido:", "").trim(),
+    Fecha: div.innerText.split("\n")[1].replace("Fecha:", "").trim(),
+    Total: div.innerText.split("\n")[2].replace("Total:", "").trim()
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+
+  XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+  XLSX.writeFile(wb, "reporte.xlsx");
+}
+
+/* ============================
+   EXPORTAR A PDF
+============================ */
+document.getElementById("btnPDF").addEventListener("click", exportPDF);
+
+function exportPDF() {
+  const pdf = new jspdf.jsPDF();
+  pdf.text("Reporte ERP Corabastos", 10, 10);
+  pdf.text(document.getElementById("repContainer").innerText, 10, 20);
+  pdf.save("reporte.pdf");
+}
 
