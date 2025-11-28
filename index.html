@@ -297,17 +297,63 @@ window.editRole = async function(role_id){
 
 window.closeEditRoleModal = function(){ $('roleEditModal').style.display = 'none'; };
 
-$('btnSaveRoleEdit').addEventListener('click', async ()=>{
-  const id = window.currentRoleEditing;
-  const name = $('edit_role_name').value.trim();
-  await supabase.from('roles').update({ name }).eq('id', id);
-  await supabase.from('role_permissions').delete().eq('role_id', id);
-  const newPerms = MODULES.map(m=>({ role_id: id, module: m, can_view: !!$('edit_perm_'+m).checked }));
-  await supabase.from('role_permissions').insert(newPerms);
-  alert('Rol actualizado');
-  closeEditRoleModal();
-  loadRoles();
+$('btnSaveRoleEdit').addEventListener('click', async () => {
+  try {
+    const id = window.currentRoleEditing;
+    const name = $('edit_role_name').value.trim();
+
+    if (!id) {
+      alert("Error: No se puede determinar el rol a editar.");
+      return;
+    }
+
+    // 1. Actualizar nombre del rol
+    const { error: roleErr } = await supabase
+      .from('roles')
+      .update({ name })
+      .eq('id', id);
+
+    if (roleErr) {
+      alert("Error actualizando nombre del rol: " + roleErr.message);
+      return;
+    }
+
+    // 2. Borrar permisos actuales
+    const { error: delErr } = await supabase
+      .from('role_permissions')
+      .delete()
+      .eq('role_id', id);
+
+    if (delErr) {
+      alert("Error borrando permisos anteriores: " + delErr.message);
+      return;
+    }
+
+    // 3. Insertar nuevos permisos
+    const newPerms = MODULES.map(module => ({
+      role_id: id,
+      module,
+      can_view: !!$(`edit_perm_${module}`).checked
+    }));
+
+    const { error: insErr } = await supabase
+      .from('role_permissions')
+      .insert(newPerms);
+
+    if (insErr) {
+      alert("Error guardando los nuevos permisos: " + insErr.message);
+      return;
+    }
+
+    alert("Rol actualizado con éxito.");
+    closeEditRoleModal();
+    loadRoles();
+
+  } catch (e) {
+    alert("Error inesperado: " + e.message);
+  }
 });
+
 
 window.deleteRole = async function(id){
   if(!confirm('Eliminar este rol?')) return;
