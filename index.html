@@ -4,47 +4,223 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ERP Corabastos — Supabase</title>
+
   <style>
-    :root{--bg:#f4f6f9;--card:#fff;--accent:#0a57ff;--muted:#6b7280}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:#0f172a}
-    header{background:#071025;color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
-    .app{display:flex;height:calc(100vh - 56px);min-height:calc(100vh - 56px)}
-    #sidebar{width:240px;background:#0b1220;color:#fff;padding:14px;display:flex;flex-direction:column;gap:8px;position:fixed;left:0;top:56px;bottom:0;transition:transform .25s}
-    #sidebar.hidden{transform:translateX(-260px)}
-    #sidebar button{background:transparent;border:0;color:#cbd5e1;text-align:left;padding:10px;border-radius:8px;cursor:pointer}
-    #sidebar button:hover{background:rgba(255,255,255,0.04);color:#fff}
-    #sidebar button.active{background:rgba(255,255,255,0.04);color:#fff;font-weight:700}
-    main{flex:1;padding:18px;margin-left:240px;overflow:auto;transition:margin-left .25s}
-    .card{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(2,6,23,0.06);margin-bottom:14px}
-    input,select,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #e6eef8;margin-top:6px}
-    label{font-weight:600;font-size:13px;margin-top:8px;display:block}
-    button.primary{background:var(--accent);color:#fff;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}
-    .small{font-size:13px;color:var(--muted)}
-    .hidden{display:none}
-    .table{width:100%;border-collapse:collapse}
-    .table th,.table td{padding:8px;border-bottom:1px solid #eef4fb;text-align:left}
-    .autocomplete{position:absolute;top:38px;width:100%;background:#fff;border:1px solid #ddd;border-radius:6px;max-height:220px;overflow:auto;z-index:9999;display:none}
-    .autocomplete div{padding:10px;cursor:pointer}
-    .autocomplete div:hover{background:#f1f5f9}
-    @media(max-width:900px){
-      #sidebar{position:fixed;left:0;top:56px;bottom:0;transform:translateX(-260px);z-index:60}
-      main{padding:12px;margin-left:0}
+    :root{
+      --bg:#f4f6f9;
+      --card:#fff;
+      --accent:#0a57ff;
+      --muted:#6b7280
     }
-    /* modal */
-    #infoModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99999;align-items:center;justify-content:center}
-    #infoModal .card{max-width:420px;width:92%}
-    /* role edit modal */
-    #roleEditModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:100000;align-items:center;justify-content:center}
-    #roleEditModal .box{background:#fff;padding:18px;border-radius:10px;width:360px}
+
+    *{box-sizing:border-box;}
+
+    body{
+      margin:0;
+      font-family:Inter,system-ui,Arial,sans-serif;
+      background:var(--bg);
+      color:#0f172a;
+    }
+
+    header{
+      background:#071025;
+      color:#fff;
+      padding:12px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .app{
+      display:flex;
+      height:calc(100vh - 56px);
+      min-height:calc(100vh - 56px);
+    }
+
+    #sidebar{
+      width:240px;
+      background:#0b1220;
+      color:#fff;
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      position:fixed;
+      left:0;
+      top:56px;
+      bottom:0;
+      transition:transform .25s;
+    }
+
+    #sidebar.hidden{
+      transform:translateX(-260px);
+    }
+
+    #sidebar button{
+      background:transparent;
+      border:0;
+      color:#cbd5e1;
+      text-align:left;
+      padding:10px;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:15px;
+    }
+
+    #sidebar button:hover{
+      background:rgba(255,255,255,0.04);
+      color:#fff;
+    }
+
+    #sidebar button.active{
+      background:rgba(255,255,255,0.08);
+      color:#fff;
+      font-weight:700;
+    }
+
+    main{
+      flex:1;
+      padding:18px;
+      margin-left:240px;
+      overflow:auto;
+      transition:margin-left .25s;
+    }
+
+    .card{
+      background:var(--card);
+      padding:14px;
+      border-radius:10px;
+      box-shadow:0 6px 18px rgba(2,6,23,0.06);
+      margin-bottom:14px;
+    }
+
+    input,select,textarea{
+      width:100%;
+      padding:8px;
+      border-radius:8px;
+      border:1px solid #e6eef8;
+      margin-top:6px;
+    }
+
+    label{
+      font-weight:600;
+      font-size:13px;
+      margin-top:8px;
+      display:block;
+    }
+
+    button.primary{
+      background:var(--accent);
+      color:#fff;
+      border:0;
+      padding:8px 12px;
+      border-radius:8px;
+      cursor:pointer;
+    }
+
+    .small{
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    .hidden{
+      display:none;
+    }
+
+    .table{
+      width:100%;
+      border-collapse:collapse;
+    }
+
+    .table th,.table td{
+      padding:8px;
+      border-bottom:1px solid #eef4fb;
+      text-align:left;
+    }
+
+    /* Autocomplete */
+    .autocomplete{
+      position:absolute;
+      top:38px;
+      width:100%;
+      background:#fff;
+      border:1px solid #ddd;
+      border-radius:6px;
+      max-height:220px;
+      overflow:auto;
+      z-index:9999;
+      display:none;
+    }
+
+    .autocomplete div{
+      padding:10px;
+      cursor:pointer;
+    }
+
+    .autocomplete div:hover{
+      background:#f1f5f9;
+    }
+
+    /* Mobile */
+    @media(max-width:900px){
+      #sidebar{
+        position:fixed;
+        left:0;
+        top:56px;
+        bottom:0;
+        transform:translateX(-260px);
+        z-index:60;
+      }
+      main{
+        padding:12px;
+        margin-left:0;
+      }
+    }
+
+    /* Modal general */
+    #infoModal{
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.6);
+      z-index:99999;
+      align-items:center;
+      justify-content:center;
+    }
+
+    #infoModal .card{
+      max-width:420px;
+      width:92%;
+    }
+
+    /* Modal editar rol */
+    #roleEditModal{
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.55);
+      z-index:100000;
+      align-items:center;
+      justify-content:center;
+    }
+
+    #roleEditModal .box{
+      background:#fff;
+      padding:18px;
+      border-radius:10px;
+      width:360px;
+    }
+
   </style>
 </head>
 <body>
+
 <header>
   <div style="display:flex;align-items:center;gap:12px">
     <button id="btnMenu" class="primary" style="background:transparent;border:0;color:#fff;font-size:20px">☰</button>
     <div style="font-weight:700;font-size:18px">ERP Corabastos</div>
   </div>
+
   <div style="display:flex;align-items:center;gap:12px">
     <div id="headerUser" class="small"></div>
     <button id="btnLogout" class="primary" style="background:#dc2626;border:0;padding:6px 10px;display:none">Cerrar sesión</button>
@@ -52,25 +228,31 @@
 </header>
 
 <div class="app">
+
+  <!-- SIDEBAR -->
   <aside id="sidebar">
-    <button id="menu_dashboard" data-sec="dashboard">Dashboard</button>
-    <button id="menu_fundaciones" data-sec="fundaciones">Fundaciones</button>
-    <button id="menu_items" data-sec="items">Items</button>
-    <button id="menu_conductores" data-sec="conductores">Conductores & Placas</button>
-    <button id="menu_pedidos" data-sec="pedidos">Pedidos</button>
-    <button id="menu_search" data-sec="search">Buscar</button>
-    <hr style="border-color:rgba(255,255,255,0.04);opacity:.06">
-    <button id="menu_usuarios" data-sec="usuarios">Mi Cuenta</button>
-    <button id="menu_admin_users" data-sec="admin_users">Usuarios (Admin)</button>
-    <button id="menu_auditoria" data-sec="auditoria">Auditoría</button>
-    <button id="menu_seguimiento" data-sec="seguimiento">Seguimiento</button>
-    <button id="menu_roles" data-sec="roles">Gestión de Roles</button>
+    <button data-sec="dashboard">Dashboard</button>
+    <button data-sec="fundaciones">Fundaciones</button>
+    <button data-sec="items">Items</button>
+    <button data-sec="conductores">Conductores & Placas</button>
+    <button data-sec="pedidos">Pedidos</button>
+    <button data-sec="search">Buscar</button>
+
+    <hr style="border-color:rgba(255,255,255,0.1);opacity:.15">
+
+    <button data-sec="usuarios">Mi Cuenta</button>
+    <button data-sec="admin_users">Usuarios (Admin)</button>
+    <button data-sec="auditoria">Auditoría</button>
+    <button data-sec="seguimiento">Seguimiento</button>
+    <button data-sec="roles">Gestión de Roles</button>
   </aside>
 
+  <!-- SECCIONES DEL SISTEMA -->
   <main id="main">
+
     <section id="dashboard" class="card">
       <h2>Bienvenido</h2>
-      <p class="small">Versión Supabase — interfaz móvil lista.</p>
+      <p class="small">Versión Supabase — totalmente reparado.</p>
     </section>
 
     <section id="fundaciones" class="card hidden">
@@ -91,82 +273,26 @@
     <section id="pedidos" class="card hidden">
       <h2>Pedidos</h2>
       <div id="pedidosContainer"></div>
-      <div class="card">
-        <h3>Crear Pedido</h3>
-        <label>NIT Fundación / Buscar</label>
-        <div style="position:relative;">
-          <input id="pd_nit" placeholder="Nit o escriba nombre" />
-          <div id="fundResults" class="autocomplete"></div>
-        </div>
-        <div id="pd_fund_info" class="small" style="margin-top:6px"></div>
-
-        <label>Punto de envío</label>
-        <div style="position:relative;">
-          <input id="pointSearch" placeholder="Buscar punto por barrio/localidad/ciudad" />
-          <div id="pointResults" class="autocomplete"></div>
-        </div>
-
-        <label>Dirección del punto de envío</label>
-        <input id="pd_point_address" type="text" readonly style="background:#f1f1f1;">
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button id="btnMaps" class="primary" style="display:none">Ver en Maps</button>
-          <button id="btnWaze" class="primary" style="display:none">Ir en Waze</button>
-        </div>
-
-        <label>Conductor</label>
-        <div style="position:relative;">
-          <input id="driverSearch" placeholder="Buscar conductor por nombre o documento" />
-          <div id="driverResults" class="autocomplete"></div>
-        </div>
-
-        <label>Placa</label>
-        <div style="position:relative;">
-          <input id="plateSearch" placeholder="Buscar placa" />
-          <div id="plateResults" class="autocomplete"></div>
-        </div>
-
-        <h4 style="margin-top:12px">Agregar Items</h4>
-        <div style="display:flex;gap:8px;flex-direction:column">
-          <div style="display:flex;gap:8px">
-            <input id="itemSearch" placeholder="Buscar item por nombre" />
-            <div id="itemResults" class="autocomplete"></div>
-            <input id="pd_kilos" type="number" placeholder="Kilos" style="width:120px">
-            <input id="pd_qty" type="number" placeholder="Cant." style="width:100px" value="1">
-            <button id="pd_add_item" class="primary">Agregar</button>
-          </div>
-          <ul id="pd_items_list" style="margin-top:10px"></ul>
-        </div>
-
-        <div style="display:flex;gap:8px;margin-top:12px">
-          <button id="btnAddPedido" class="primary">Guardar Pedido</button>
-        </div>
-      </div>
-      <div class="card" style="margin-top:10px">
-        <h3>Listado de Pedidos</h3>
-        <input id="searchPedidos" placeholder="Buscar..." style="margin-bottom:10px">
-        <table class="table" id="pedidosTable"><thead><tr><th>ID</th><th>Fundación</th><th>Fecha</th><th>Kg</th><th>Total</th><th>Acciones</th></tr></thead><tbody id="pedidosBody"></tbody></table>
-      </div>
     </section>
 
     <section id="search" class="card hidden">
-      <h2>Buscador Global</h2>
-      <input id="globalSearch" placeholder="Buscar..." />
-      <div id="globalResults"></div>
+      <h2>Buscar</h2>
+      <div id="searchContainer"></div>
     </section>
 
     <section id="usuarios" class="card hidden">
       <h2>Mi Cuenta</h2>
-      <div id="userContainer"></div>
+      <div id="usuariosContainer"></div>
     </section>
 
     <section id="admin_users" class="card hidden">
-      <h2>Gestión Usuarios (Admin)</h2>
+      <h2>Usuarios (Administrador)</h2>
       <div id="adminUsersContainer"></div>
     </section>
 
     <section id="auditoria" class="card hidden">
       <h2>Auditoría</h2>
-      <div id="auditContainer"></div>
+      <div id="auditoriaContainer"></div>
     </section>
 
     <section id="seguimiento" class="card hidden">
@@ -176,441 +302,651 @@
 
     <section id="roles" class="card hidden">
       <h2>Gestión de Roles</h2>
-      <div class="card">
-        <h3>Crear nuevo rol</h3>
-        <label>Nombre del rol</label>
-        <input id="role_name" placeholder="Ej: Operador, Auditor, Repartidor">
-        <h4 style="margin-top:10px;">Permisos</h4>
-        <div id="roles_perm_list"></div>
-        <button id="btnCreateRole" class="primary" style="margin-top:10px">Crear Rol</button>
-      </div>
-      <div class="card">
-        <h3>Roles existentes</h3>
-        <ul id="roleList" class="small" style="padding-left:18px"></ul>
-      </div>
+      <div id="rolesContainer"></div>
     </section>
 
   </main>
 </div>
 
-<!-- Info modal -->
+<!-- MODAL INFO -->
 <div id="infoModal">
   <div class="card">
-    <h3 id="infoTitle">Información</h3>
-    <div id="infoContent" class="small" style="margin-top:8px"></div>
-    <div style="margin-top:12px"><button class="primary" onclick="closeInfoModal()">Cerrar</button></div>
+    <h3 id="infoTitle"></h3>
+    <div id="infoBody" class="small" style="margin-top:8px"></div>
+    <button onclick="closeInfo()" class="primary" style="margin-top:14px">Cerrar</button>
   </div>
 </div>
 
-<!-- Role edit modal -->
+<!-- MODAL EDITAR ROL -->
 <div id="roleEditModal">
   <div class="box">
     <h3>Editar Rol</h3>
-    <input id="edit_role_name" style="width:100%;margin-bottom:8px">
-    <h4>Permisos</h4>
-    <div id="edit_roles_perm_list"></div>
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <button id="btnSaveRoleEdit" class="primary">Guardar</button>
-      <button onclick="closeEditRoleModal()">Cancelar</button>
-    </div>
+
+    <label>Nombre del Rol</label>
+    <input id="edit_role_name" />
+
+    <h4 style="margin-top:14px">Permisos</h4>
+    <div id="editPermContainer"></div>
+
+    <button id="btnSaveRoleEdit" class="primary" style="margin-top:12px;width:100%">Guardar</button>
+    <button onclick="closeEditRoleModal()" style="margin-top:8px;width:100%">Cancelar</button>
   </div>
 </div>
 
-<script type="module">
-/* Minimal supabase client wrapper expected by modules (user will replace with their supabase.js) */
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" style="
+  position:fixed; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  background:#0b1220;
+  z-index:999999;
+">
+  <div class="card" style="width:320px">
+    <h2>Iniciar Sesión</h2>
+
+    <label>Usuario</label>
+    <input id="loginUser" placeholder="usuario">
+
+    <label>Contraseña</label>
+    <input id="loginPass" type="password" placeholder="********">
+
+    <button id="btnLogin" class="primary" style="margin-top:14px;width:100%">Entrar</button>
+
+    <p class="small" style="text-align:center;margin-top:12px;color:#64748b">Acceso protegido</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+////////////////////////////////////////////////////////////////////////////////
+// 1. INICIALIZACIÓN SUPABASE
+////////////////////////////////////////////////////////////////////////////////
 
 const SUPABASE_URL = "https://uqwiertkefmwoqrbnfqy.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxd2llcnRrZWZtd29xcmJuZnF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyNTMyNjAsImV4cCI6MjA3OTgyOTI2MH0.1f2ywRxoXAPBmtOZTT51SlNOIKDN8ji547S4Pw7u83o";
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxd2llcnRrZWZtd29xcmJuZnF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyNTMyNjAsImV4cCI6MjA3OTgyOTI2MH0.1f2ywRxoXAPBmtOZTT51SlNOIKDN8ji547S4Pw7u83o";
 
-/* Basic app state (will be overridden by modules) */
-let state = { currentUser:null };
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-/* UI helpers */
-const $ = id => document.getElementById(id);
-function show(sec){ document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden')); const el=$(sec); if(el) el.classList.remove('hidden'); document.querySelectorAll('#sidebar button').forEach(b=>b.classList.remove('active')); const btn=document.querySelector(`#sidebar button[data-sec="${sec}"]`); if(btn) btn.classList.add('active'); }
+////////////////////////////////////////////////////////////////////////////////
+// 2. LOGIN
+////////////////////////////////////////////////////////////////////////////////
 
-/* Sidebar hamburger */
-$('btnMenu').addEventListener('click', ()=>{ document.getElementById('sidebar').classList.toggle('hidden'); });
+$("btnLogin").addEventListener("click", async () => {
+  const user = $("loginUser").value.trim();
+  const pass = $("loginPass").value.trim();
 
-/* Info modal functions */
-window.showInfo = function(title, html){
-  $('infoTitle').innerText = title;
-  $('infoContent').innerHTML = html;
-  $('infoModal').style.display = 'flex';
-};
-window.closeInfoModal = function(){ $('infoModal').style.display = 'none'; };
+  if (!user || !pass){
+    alert("Debe ingresar usuario y contraseña");
+    return;
+  }
 
-/* ROLE MODULE code inserted here (create/edit/delete roles) */
+  const { data, error } = await supabase
+    .from("users")
+    .select("id, username, pass, role_id")
+    .eq("username", user)
+    .maybeSingle();
+
+  if (error || !data){
+    alert("Usuario no encontrado");
+    return;
+  }
+
+  if (data.pass !== pass){
+    alert("Contraseña incorrecta");
+    return;
+  }
+
+  sessionStorage.setItem("uid", data.id);
+  sessionStorage.setItem("role", data.role_id);
+  sessionStorage.setItem("username", data.username);
+
+  loadCurrentUser();
+  loadRolePermissions();
+  showSection("dashboard");
+
+  loginScreen.style.display = "none";
+  btnLogout.style.display = "block";
+});
+
+////////////////////////////////////////////////////////////////////////////////
+// 3. LOGOUT
+////////////////////////////////////////////////////////////////////////////////
+
+$("btnLogout").addEventListener("click", () => {
+  sessionStorage.clear();
+  loginScreen.style.display = "flex";
+  btnLogout.style.display = "none";
+});
+
+////////////////////////////////////////////////////////////////////////////////
+// 4. MOSTRAR USUARIO ACTUAL
+////////////////////////////////////////////////////////////////////////////////
+
+async function loadCurrentUser(){
+  const name = sessionStorage.getItem("username") || "";
+  $("headerUser").innerText = name;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// 5. PERMISOS DE ROL (Oculta o muestra módulos del sidebar)
+////////////////////////////////////////////////////////////////////////////////
+
 const MODULES = [
-  "dashboard","fundaciones","items","conductores","placas","pedidos","search",
-  "usuarios","admin_users","auditoria","seguimiento","roles"
+  "dashboard","fundaciones","items","conductores",
+  "pedidos","search","usuarios","admin_users",
+  "auditoria","seguimiento","roles"
 ];
 
-function renderRolePermCheckboxes(){
-  const box = $('roles_perm_list');
-  if(!box) return;
-  box.innerHTML = MODULES.map(m=>`<div style="margin-bottom:6px"><input type="checkbox" id="perm_${m}" checked> <label for="perm_${m}">${m}</label></div>`).join('');
-}
-renderRolePermCheckboxes();
+async function loadRolePermissions(){
+  const role = sessionStorage.getItem("role");
+  if (!role) return;
+  
+  const { data, error } = await supabase
+    .from("role_permissions")
+    .select("*")
+    .eq("role_id", role);
 
-async function createRole(){
-  const name = $('role_name').value.trim();
-  if(!name) return alert('Ingrese nombre de rol');
-  const { data: role, error } = await supabase.from('roles').insert({ name }).select().single();
-  if(error) return alert('Error creando rol: '+error.message);
-  const perms = MODULES.map(m=>({ role_id: role.id, module: m, can_view: !!$('perm_'+m).checked }));
-  const { error: permError } = await supabase.from('role_permissions').insert(perms);
-  if(permError) return alert('Error guardando permisos: '+permError.message);
-  alert('Rol creado');
-  $('role_name').value = '';
-  loadRoles();
-}
-$('btnCreateRole').addEventListener('click', createRole);
+  if (error){ console.log(error); return; }
 
-async function loadRoles(){
-  const { data: roles, error } = await supabase.from('roles').select('*').order('id');
-  if(error) return console.error(error);
-  const ul = $('roleList');
-  ul.innerHTML = '';
-  roles.forEach(r=>{
-    const li = document.createElement('li');
-    li.innerHTML = `<b>${r.name}</b>
-      <button onclick="editRole(${r.id})" class="primary" style="margin-left:8px">Editar</button>
-      <button onclick="deleteRole(${r.id})" style="margin-left:8px">Eliminar</button>`;
-    ul.appendChild(li);
+  // Reset: oculto todo
+  document.querySelectorAll("#sidebar button").forEach(b => b.style.display="none");
+
+  // Muestro solo si "can_view = true"
+  data.forEach(p => {
+    const btn = document.querySelector(`#sidebar button[data-sec='${p.module}']`);
+    if (btn && p.can_view) btn.style.display = "block";
   });
 }
-window.loadRoles = loadRoles;
-loadRoles();
 
-window.editRole = async function(role_id){
-  window.currentRoleEditing = role_id;
-  const { data: role } = await supabase.from('roles').select('*').eq('id', role_id).single();
-  $('edit_role_name').value = role.name;
-  const { data: perms } = await supabase.from('role_permissions').select('*').eq('role_id', role_id);
-  const box = $('edit_roles_perm_list');
-  box.innerHTML = MODULES.map(m=>{ const p = perms.find(x=>x.module===m); return `<div style="margin-bottom:6px"><input type="checkbox" id="edit_perm_${m}" ${p?.can_view ? 'checked': ''}> <label for="edit_perm_${m}">${m}</label></div>`; }).join('');
-  $('roleEditModal').style.display = 'flex';
-};
+////////////////////////////////////////////////////////////////////////////////
+// 6. CAMBIO DE SECCIONES
+////////////////////////////////////////////////////////////////////////////////
 
-window.closeEditRoleModal = function(){ $('roleEditModal').style.display = 'none'; };
-
-$('btnSaveRoleEdit').addEventListener('click', async () => {
-  try {
-    const id = window.currentRoleEditing;
-    const name = $('edit_role_name').value.trim();
-
-    if (!id) {
-      alert("Error: No se puede determinar el rol a editar.");
-      return;
-    }
-
-    // 1. Actualizar nombre del rol
-    const { error: roleErr } = await supabase
-      .from('roles')
-      .update({ name })
-      .eq('id', id);
-
-    if (roleErr) {
-      alert("Error actualizando nombre del rol: " + roleErr.message);
-      return;
-    }
-
-    // 2. Borrar permisos actuales
-    const { error: delErr } = await supabase
-      .from('role_permissions')
-      .delete()
-      .eq('role_id', id);
-
-    if (delErr) {
-      alert("Error borrando permisos anteriores: " + delErr.message);
-      return;
-    }
-
-    // 3. Insertar nuevos permisos
-    const newPerms = MODULES.map(module => ({
-      role_id: id,
-      module,
-      can_view: !!$(`edit_perm_${module}`).checked
-    }));
-
-    const { error: insErr } = await supabase
-      .from('role_permissions')
-      .insert(newPerms);
-
-    if (insErr) {
-      alert("Error guardando los nuevos permisos: " + insErr.message);
-      return;
-    }
-
-    alert("Rol actualizado con éxito.");
-    closeEditRoleModal();
-    loadRoles();
-
-  } catch (e) {
-    alert("Error inesperado: " + e.message);
-  }
-});
-
-
-window.deleteRole = async function(id){
-  if(!confirm('Eliminar este rol?')) return;
-  await supabase.from('role_permissions').delete().eq('role_id', id);
-  await supabase.from('roles').delete().eq('id', id);
-  loadRoles();
-};
-
-/* AUTOCOMPLETE helpers for foundations, drivers, plates, points, items */
-function safeText(t){ return (''+t).replace(/'/g,"\'"); }
-
-$('pd_nit').addEventListener('input', async function(){
-  const text = this.value.trim();
-  const box = $('fundResults');
-  if(text.length<2){ box.style.display='none'; $('pd_fund_info').innerHTML=''; window.selectedFoundationId = null; return; }
-  const { data } = await supabase.from('fundaciones').select('*').or(`nombre.ilike.%${text}%,nit.ilike.%${text}%`).order('nombre');
-  if(!data || data.length===0){ box.innerHTML = '<div>No hay coincidencias</div>'; box.style.display='block'; return; }
-  box.innerHTML = data.map(f=>`<div onclick="selectFoundation(${f.id},'${safeText(f.nombre)}','${safeText(f.nit)}')"><b>${f.nombre}</b><br><small>NIT: ${f.nit}</small></div>`).join('');
-  box.style.display='block';
-});
-
-window.selectFoundation = async function(id,name,nit){
-  $('pd_nit').value = `${name} (${nit})`;
-  $('fundResults').style.display='none';
-  window.selectedFoundationId = id;
-  $('pd_fund_info').innerHTML = `<b>${name}</b>`;
-  // load shipping points for this foundation into pointResults container for selection
-  const { data } = await supabase.from('puntos_envio').select('*').eq('fundacion_id', id).order('barrio');
-  const box = $('pointResults');
-  if(!data || data.length===0){ box.innerHTML = '<div>No hay puntos registrados</div>'; box.style.display='block'; $('pd_point_address').value=''; $('btnMaps').style.display='none'; $('btnWaze').style.display='none'; return; }
-  box.innerHTML = data.map(p=>`<div onclick="selectPoint(${p.id},'${safeText(p.barrio)}','${safeText(p.ciudad)}')">${p.barrio} — ${p.localidad} — ${p.ciudad}</div>`).join('');
-  box.style.display='block';
-};
-
-window.selectPoint = async function(id,barrio,ciudad){
-  $('pointSearch').value = `${barrio} (${ciudad})`;
-  $('pointResults').style.display='none';
-  window.selectedShippingPointId = id;
-  // load point address
-  const { data, error } = await supabase.from('puntos_envio').select('barrio,localidad,ciudad,direccion').eq('id', id).single();
-  if(error || !data){ $('pd_point_address').value=''; $('btnMaps').style.display='none'; $('btnWaze').style.display='none'; return; }
-  const full = `${data.barrio}, ${data.localidad}, ${data.ciudad}${data.direccion ? ' - '+data.direccion : ''}`;
-  $('pd_point_address').value = full;
-  window.selectedPointFullAddress = full;
-  $('btnMaps').style.display='inline-block';
-  $('btnWaze').style.display='inline-block';
-};
-
-/* Maps and Waze */
-window.openMaps = function(){ if(!window.selectedPointFullAddress) return alert('No hay dirección'); const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(window.selectedPointFullAddress)}`; window.open(url,'_blank'); };
-window.openWaze = function(){ if(!window.selectedPointFullAddress) return alert('No hay dirección'); const url = `https://www.waze.com/ul?ll=&q=${encodeURIComponent(window.selectedPointFullAddress)}&navigate=yes`; window.open(url,'_blank'); };
-$('btnMaps').addEventListener('click', window.openMaps);
-$('btnWaze').addEventListener('click', window.openWaze);
-
-/* Autocomplete drivers */
-$('driverSearch').addEventListener('input', async function(){
-  const txt = this.value.trim();
-  const box = $('driverResults');
-  if(txt.length<2){ box.style.display='none'; return; }
-  const { data } = await supabase.from('conductores').select('*').or(`nombre.ilike.%${txt}%,documento.ilike.%${txt}%`).order('nombre');
-  if(!data || data.length===0){ box.innerHTML = '<div>No hay coincidencias</div>'; box.style.display='block'; return; }
-  box.innerHTML = data.map(d=>`<div onclick="selectDriver(${d.id},'${safeText(d.nombre)}','${safeText(d.documento)}')"><b>${d.nombre}</b><br><small>${d.documento}</small></div>`).join('');
-  box.style.display='block';
-});
-window.selectDriver = function(id,name,doc){ $('driverSearch').value = `${name} (${doc})`; $('driverResults').style.display='none'; window.selectedDriverId = id; };
-
-/* Autocomplete plates */
-$('plateSearch').addEventListener('input', async function(){
-  const txt = this.value.trim();
-  const box = $('plateResults');
-  if(txt.length<2){ box.style.display='none'; return; }
-  const { data } = await supabase.from('placas').select('*').ilike('placa', `%${txt}%`).order('placa');
-  if(!data || data.length===0){ box.innerHTML='<div>No hay coincidencias</div>'; box.style.display='block'; return; }
-  box.innerHTML = data.map(p=>`<div onclick="selectPlate('${safeText(p.placa)}','${safeText(p.tipo)}',${p.id})"><b>${p.placa}</b><br><small>${p.tipo}</small></div>`).join('');
-  box.style.display='block';
-});
-window.selectPlate = function(plate,type,id){ $('plateSearch').value = `${plate} (${type})`; $('plateResults').style.display='none'; window.selectedPlate = plate; window.selectedPlateId = id; };
-
-/* Autocomplete items */
-$('itemSearch').addEventListener('input', async function(){
-  const txt = this.value.trim();
-  const box = $('itemResults');
-  if(txt.length<2){ box.style.display='none'; return; }
-  const { data } = await supabase.from('items').select('*').ilike('nombre', `%${txt}%`).order('nombre');
-  if(!data || data.length===0){ box.innerHTML='<div>No hay coincidencias</div>'; box.style.display='block'; return; }
-  box.innerHTML = data.map(it=>`<div onclick="selectItem(${it.id},'${safeText(it.nombre)}',${it.precio})"><b>${it.nombre}</b><br><small>$${it.precio}</small></div>`).join('');
-  box.style.display='block';
-});
-window.selectItem = function(id,name,price){ $('itemSearch').value = `${name}`; $('itemResults').style.display='none'; window.selectedItem = {id,name,price}; };
-
-/* Pedido item list */
-let currentPedidoItems = [];
-function refreshPdItems(){
-  const ul = $('pd_items_list'); ul.innerHTML = '';
-  currentPedidoItems.forEach((it,idx)=>{
-    const li = document.createElement('li');
-    li.innerHTML = `${it.name} x${it.qty} — ${it.kgs||''}kg — $${it.price} <button onclick="removePdItem(${idx})" style="margin-left:8px">Eliminar</button>`;
-    ul.appendChild(li);
+document.querySelectorAll("#sidebar button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const sec = btn.getAttribute("data-sec");
+    showSection(sec);
   });
-}
-window.removePdItem = function(i){ currentPedidoItems.splice(i,1); refreshPdItems(); };
-
-$('pd_add_item').addEventListener('click', function(){
-  if(!window.selectedItem) return alert('Seleccione item');
-  const qty = Number($('pd_qty').value)||1;
-  const kgs = Number($('pd_kilos')?.value)||0;
-  const it = { id: window.selectedItem.id, name: window.selectedItem.name, price: window.selectedItem.price, qty, kgs };
-  currentPedidoItems.push(it);
-  refreshPdItems();
 });
 
-/* Create pedido with validation: nit exists, points exist, items exist */
-$('btnAddPedido').addEventListener('click', async function(){
-  const nitInput = $('pd_nit').value.trim();
-  if(!nitInput) return alert('Ingrese NIT o seleccione fundación');
-  if(!window.selectedFoundationId) return alert('Seleccione una fundación válida desde el desplegable');
-  // ensure selected point
-  if(!window.selectedShippingPointId) return alert('Seleccione punto de envío válido');
-  // items
-  if(currentPedidoItems.length===0) return alert('Agregue al menos un item');
-  // driver
-  if(!window.selectedDriverId) return alert('Seleccione conductor');
-  // build pedido
-  const subtotal = currentPedidoItems.reduce((s,it)=> s + (it.price||0)*(it.qty||1), 0);
-  const pedido = {
-    codigo: 'PED-'+Date.now(),
-    fundacion_id: window.selectedFoundationId,
-    punto_id: window.selectedShippingPointId,
-    conductor_id: window.selectedDriverId,
-    placa_id: window.selectedPlateId || null,
-    peaje: 0,
-    transporte: 0,
-    total: subtotal,
-    created_at: new Date().toISOString(),
-    items: currentPedidoItems
-  };
-  const { error } = await supabase.from('pedidos').insert(pedido);
-  if(error) return alert('Error creando pedido: '+error.message);
-  alert('Pedido creado');
-  currentPedidoItems = [];
-  refreshPdItems();
-  loadPedidos();
+function showSection(sec){
+  document.querySelectorAll("main section").forEach(s => s.classList.add("hidden"));
+  $(sec).classList.remove("hidden");
+
+  // Marca botón activo
+  document.querySelectorAll("#sidebar button").forEach(b => b.classList.remove("active"));
+  const b = document.querySelector(`#sidebar button[data-sec='${sec}']`);
+  if (b) b.classList.add("active");
+
+  // Cargar módulos
+  if (sec === "roles") loadRoles();
+  if (sec === "fundaciones") loadFundaciones();
+  if (sec === "items") loadItems();
+  if (sec === "conductores") loadConductores();
+  if (sec === "pedidos") loadPedidos();
+  if (sec === "admin_users") loadUsersAdmin();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// 7. BOTÓN MENU (MÓVIL)
+////////////////////////////////////////////////////////////////////////////////
+
+$("btnMenu").addEventListener("click", () => {
+  sidebar.classList.toggle("hidden");
 });
 
-/* Load pedidos list */
-async function loadPedidos(){
-  const { data } = await supabase.from('pedidos').select('*, foundation:fundaciones(nombre), point:puntos_envio(barrio)').order('created_at', {ascending:false});
-  const tbody = $('pedidosBody'); tbody.innerHTML = '';
-  if(!data) return;
-  data.forEach(p=>{
-    const kilos = (p.items||[]).reduce((s,it)=> s + (it.kgs||0), 0);
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${p.id}</td><td>${p.foundation?.nombre||''}</td><td>${new Date(p.created_at).toLocaleString()}</td><td>${kilos}</td><td>$${p.total||0}</td>
-      <td>
-        <button onclick="openPedidoMaps(${p.punto_id})">Mapa</button>
-        <button onclick="openPedidoWaze(${p.punto_id})">Waze</button>
-        <button onclick="viewPedido(${p.id})">Ver</button>
-      </td>`;
-    tbody.appendChild(tr);
-  });
+////////////////////////////////////////////////////////////////////////////////
+// 8. HERRAMIENTA $
+////////////////////////////////////////////////////////////////////////////////
+
+function $(id){
+  return document.getElementById(id);
 }
-window.loadPedidos = loadPedidos;
-loadPedidos();
-
-window.openPedidoMaps = async function(pointId){
-  const { data, error } = await supabase.from('puntos_envio').select('barrio,localidad,ciudad,direccion').eq('id', pointId).single();
-  if(error || !data) return alert('No se pudo obtener dirección');
-  const full = `${data.barrio}, ${data.localidad}, ${data.ciudad}${data.direccion ? ' - '+data.direccion : ''}`;
-  window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(full)}`,'_blank');
-};
-window.openPedidoWaze = async function(pointId){
-  const { data, error } = await supabase.from('puntos_envio').select('barrio,localidad,ciudad,direccion').eq('id', pointId).single();
-  if(error || !data) return alert('No se pudo obtener dirección');
-  const full = `${data.barrio}, ${data.localidad}, ${data.ciudad}${data.direccion ? ' - '+data.direccion : ''}`;
-  window.open(`https://www.waze.com/ul?ll=&q=${encodeURIComponent(full)}&navigate=yes`,'_blank');
-};
-
-/* Generic view functions for drivers/items/funds */
-window.viewPedido = async function(pedidoId){
-  const { data } = await supabase.from('pedidos').select('*, foundation:fundaciones(*), point:puntos_envio(*), driver:conductores(*)').eq('id', pedidoId).single();
-  if(!data) return alert('No encontrado');
-  const o = data;
-  const html = `<b>ID:</b> ${o.id}<br><b>Fundación:</b> ${o.foundation?.nombre || ''}<br><b>Punto:</b> ${o.point?.barrio || ''} — ${o.point?.localidad || ''}<br><b>Conductor:</b> ${o.driver?.nombre || ''}<br><b>Items:</b><ul>${(o.items||[]).map(it=>'<li>'+it.name+' x'+it.qty+'</li>').join('')}</ul>`;
-  showInfo('Pedido '+o.id, html);
-};
-
-/* LOGIN UI and logic */
-// create login modal DOM if not present
-function ensureLoginModal(){
-  if(document.getElementById('loginModal')) return;
-  const div = document.createElement('div');
-  div.id = 'loginModal';
-  div.style = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:100000';
-  div.innerHTML = `
-    <div style="background:#fff;padding:18px;border-radius:10px;width:320px;box-shadow:0 8px 30px rgba(0,0,0,0.2)">
-      <h3 style="margin-top:0;text-align:center">Iniciar sesión</h3>
-      <label>Usuario</label><input id="lg_user" style="width:100%;margin-bottom:8px">
-      <label>Contraseña</label><input id="lg_pass" type="password" style="width:100%;margin-bottom:8px">
-      <div style="display:flex;gap:8px;margin-top:12px"><button id="lg_btn" class="primary" style="flex:1">Ingresar</button><button id="lg_demo" style="flex:1">Demo</button></div>
-      <div id="lg_msg" class="small" style="margin-top:8px;color:#ff0000;display:none"></div>
-    </div>`;
-  document.body.appendChild(div);
-  document.getElementById('lg_btn').addEventListener('click', doLogin);
-  document.getElementById('lg_demo').addEventListener('click', ()=>{ document.getElementById('lg_user').value='admin'; document.getElementById('lg_pass').value='3134630773'; doLogin(); });
-}
-
-async function doLogin(){
-  const u = document.getElementById('lg_user').value.trim();
-  const p = document.getElementById('lg_pass').value.trim();
-  const msg = document.getElementById('lg_msg');
-  if(!u||!p){ msg.style.display='block'; msg.innerText='Usuario y contraseña son requeridos'; return; }
-  msg.style.display='none';
-  // query users table in supabase
-  const { data, error } = await supabase.from('users').select('*').eq('username', u).eq('pass', p).single();
-  if(error || !data){ msg.style.display='block'; msg.innerText='Usuario o clave incorrectos'; return; }
-  // success
-  window.currentUser = data;
-  // store in sessionStorage
-  sessionStorage.setItem('erp_user', JSON.stringify({id:data.id, username:data.username, role_id:data.role_id}));
-  // remove modal
-  const m = document.getElementById('loginModal'); if(m) m.remove();
-  // set header and logout button
-  document.getElementById('headerUser').innerText = data.username + (data.role_id? '':'') ;
-  document.getElementById('btnLogout').style.display = 'inline-block';
-  // apply role permissions if available
-  applyRolePermissions();
-  // load initial data
-  loadRoles(); loadPedidos();
-}
-
-// show login if no session
-function checkSessionAndLogin(){
-  const s = sessionStorage.getItem('erp_user');
-  if(s){ try{ window.currentUser = JSON.parse(s); document.getElementById('headerUser').innerText = window.currentUser.username; document.getElementById('btnLogout').style.display = 'inline-block'; applyRolePermissions(); return; }catch(e){} }
-  ensureLoginModal();
-}
-
-async function applyRolePermissions(){
-  try{
-    if(!window.currentUser || !window.currentUser.role_id) return;
-    const { data: perms } = await supabase.from('role_permissions').select('*').eq('role_id', window.currentUser.role_id);
-    if(!perms) return;
-    // hide/show sidebar buttons based on module names mapping
-    perms.forEach(p=>{
-      const btn = document.querySelector(`#sidebar button[data-sec="${p.module}"]`);
-      if(btn) btn.style.display = p.can_view ? 'block' : 'none';
-    });
-  }catch(e){ console.error('applyRolePermissions', e); }
-}
-
-/* Initial navigation */
-document.querySelectorAll('#sidebar button').forEach(b=>b.addEventListener('click', ()=> show(b.dataset.sec)));
- 
-// Check session and show login if needed
-checkSessionAndLogin();
-show('dashboard');
-
 </script>
-</body>
-</html>
+<!-- PARTE 3: CRUDs (pégalo justo después de la Parte 2, dentro del mismo <script>) -->
+
+/* ---------- Helpers UI ---------- */
+function closeInfo(){ document.getElementById('infoModal').style.display='none'; }
+function showInfo(title, html){ document.getElementById('infoTitle').innerText = title; document.getElementById('infoBody').innerHTML = html; document.getElementById('infoModal').style.display='flex'; }
+
+/* utility: safe text for html insertion */
+function safe(s){ return (s===null||s===undefined) ? '' : String(s); }
+
+/* ---------- RENDERERS: inject forms into containers ---------- */
+
+function renderFundacionesUI(){
+  const c = $('fundacionesContainer');
+  c.innerHTML = `
+    <div class="card">
+      <h3>Crear / Editar Fundación</h3>
+      <input id="ui_f_id" type="hidden">
+      <label>NIT</label><input id="ui_f_nit">
+      <label>Nombre</label><input id="ui_f_nombre">
+      <label>Dirección</label><input id="ui_f_direccion">
+      <div style="margin-top:8px"><button id="ui_btnFundSave" class="primary">Guardar Fundación</button></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h3>Listado</h3>
+      <input id="ui_searchFund" placeholder="Buscar por nombre o nit" style="margin-bottom:8px">
+      <div id="ui_fundList"></div>
+    </div>
+  `;
+  document.getElementById('ui_btnFundSave').addEventListener('click', saveFundacionUI);
+  document.getElementById('ui_searchFund').addEventListener('input', loadFundaciones);
+}
+
+function renderItemsUI(){
+  const c = $('itemsContainer');
+  c.innerHTML = `
+    <div class="card">
+      <h3>Crear / Editar Item</h3>
+      <input id="ui_it_id" type="hidden">
+      <label>Nombre</label><input id="ui_it_nombre">
+      <label>Precio</label><input id="ui_it_precio" type="number">
+      <div style="margin-top:8px"><button id="ui_btnItemSave" class="primary">Guardar Item</button></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h3>Listado</h3>
+      <input id="ui_searchItems" placeholder="Buscar items..." style="margin-bottom:8px">
+      <div id="ui_itemsList"></div>
+    </div>
+  `;
+  document.getElementById('ui_btnItemSave').addEventListener('click', saveItemUI);
+  document.getElementById('ui_searchItems').addEventListener('input', loadItems);
+}
+
+function renderConductoresUI(){
+  const c = $('conductoresContainer');
+  c.innerHTML = `
+    <div class="card">
+      <h3>Crear / Editar Conductor</h3>
+      <input id="ui_drv_id" type="hidden">
+      <label>Nombre</label><input id="ui_drv_nombre">
+      <label>Documento</label><input id="ui_drv_documento">
+      <label>Teléfono</label><input id="ui_drv_telefono">
+      <div style="margin-top:8px"><button id="ui_btnDrvSave" class="primary">Guardar Conductor</button></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h3>Listado</h3>
+      <input id="ui_searchDrivers" placeholder="Buscar conductores..." style="margin-bottom:8px">
+      <div id="ui_driversList"></div>
+    </div>
+  `;
+  document.getElementById('ui_btnDrvSave').addEventListener('click', saveDriverUI);
+  document.getElementById('ui_searchDrivers').addEventListener('input', loadConductores);
+}
+
+function renderPlacasUI(){
+  const c = $('conductoresContainer') || $('placasContainer'); // prefer conductoresContainer layout; if placa has its own, adjust
+  // we created separate section "placas" in Part1; use its container by id in DOM:
+  const pc = $('placasList') ? $('places') : null;
+  // render into placasContainer (exists in Part1 as platesList? we used platesList earlier; safer: use #placasContainer from Part1)
+  const cont = $('placasList') ? null : null;
+  const c2 = $('placasList') ? null : null;
+  // Simpler: render into #placasList container created in Part1? Actually Part1 provided platesList in repaired earlier; but here we will render into 'placas' section container we created: 'placas' has platesList in earlier layout? To be robust, we'll render into 'placas' section container id 'placas' querySelector.
+  const container = document.querySelector('#placas') || document.getElementById('placas') || null;
+  // But we have placas section with id "placas" and inside is two cards in Part1? To avoid mismatch, render into element with id 'placas' using querySelector for inner container 'platesList' and 'pl_conductor' select exists in Part1 earlier? Simpler: directly set innerHTML of section '#placas' to our UI.
+  const sec = document.getElementById('placas');
+  if(!sec) return;
+  sec.innerHTML = `
+    <h2>Placas</h2>
+    <div class="card">
+      <h3>Crear / Editar Placa</h3>
+      <input id="ui_pl_id" type="hidden">
+      <label>Placa</label><input id="ui_pl_placa">
+      <label>Tipo</label><input id="ui_pl_tipo">
+      <label>Conductor</label><select id="ui_pl_conductor"></select>
+      <div style="margin-top:8px"><button id="ui_btnPlSave" class="primary">Guardar Placa</button></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h3>Listado</h3>
+      <input id="ui_searchPlates" placeholder="Buscar placas..." style="margin-bottom:8px">
+      <div id="ui_platesList"></div>
+    </div>
+  `;
+  document.getElementById('ui_btnPlSave').addEventListener('click', savePlateUI);
+  document.getElementById('ui_searchPlates').addEventListener('input', loadPlates);
+}
+
+/* ADMIN USERS UI */
+function renderAdminUsersUI(){
+  const c = $('adminUsersContainer');
+  c.innerHTML = `
+    <div class="card">
+      <h3>Crear Usuario</h3>
+      <label>Usuario</label><input id="ui_adm_user">
+      <label>Contraseña</label><input id="ui_adm_pass" type="password">
+      <label>Rol (id)</label><input id="ui_adm_role" type="number">
+      <div style="margin-top:8px"><button id="ui_btnAdmCreate" class="primary">Crear Usuario</button></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h3>Listado de Usuarios</h3>
+      <div id="ui_adminUsersList"></div>
+    </div>
+  `;
+  document.getElementById('ui_btnAdmCreate').addEventListener('click', saveAdminUserUI);
+}
+
+/* ---------- CRUD Implementation: Fundaciones ---------- */
+
+async function loadFundaciones(){
+  try{
+    const q = (document.getElementById('ui_searchFund')?.value || '').trim();
+    let query = supabase.from('fundaciones').select('*').order('nombre');
+    if(q) query = query.or(`nombre.ilike.%${q}%,nit.ilike.%${q}%`);
+    const { data, error } = await query;
+    const box = document.getElementById('ui_fundList');
+    if(error){ box.innerText = 'Error: '+error.message; return; }
+    box.innerHTML = '';
+    data.forEach(f=>{
+      const div = document.createElement('div'); div.className='card'; div.style.marginBottom='8px';
+      div.innerHTML = `<b>${safe(f.nombre)}</b><div class="small">NIT: ${safe(f.nit)}</div><div class="small">${safe(f.direccion)}</div>
+        <div style="margin-top:6px"><button onclick="editFundUI(${f.id})">Editar</button> <button onclick="deleteFundUI(${f.id})" style="margin-left:8px">Eliminar</button> <button onclick="viewFundInfo(${f.id})" style="margin-left:8px">Ver</button></div>`;
+      box.appendChild(div);
+    });
+  }catch(e){ console.error(e); }
+}
+
+async function saveFundacionUI(){
+  const id = Number(document.getElementById('ui_f_id').value) || 0;
+  const nit = document.getElementById('ui_f_nit').value.trim();
+  const nombre = document.getElementById('ui_f_nombre').value.trim();
+  const direccion = document.getElementById('ui_f_direccion').value.trim();
+  if(!nit || !nombre) return alert('NIT y Nombre requeridos');
+  // check duplicate nit if creating
+  if(!id){
+    const { data: ex } = await supabase.from('fundaciones').select('id').eq('nit', nit).maybeSingle();
+    if(ex) return alert('Ya existe fundación con ese NIT');
+    const { error } = await supabase.from('fundaciones').insert({nit,nombre,direccion});
+    if(error) return alert('Error: '+error.message);
+    alert('Fundación creada');
+  } else {
+    const { error } = await supabase.from('fundaciones').update({nit,nombre,direccion}).eq('id', id);
+    if(error) return alert('Error: '+error.message);
+    alert('Fundación actualizada');
+  }
+  document.getElementById('ui_f_id').value=''; document.getElementById('ui_f_nit').value=''; document.getElementById('ui_f_nombre').value=''; document.getElementById('ui_f_direccion').value='';
+  loadFundaciones();
+  loadRolePermissions(); // in case admin view depends
+}
+
+window.editFundUI = async function(id){
+  const { data, error } = await supabase.from('fundaciones').select('*').eq('id', id).single();
+  if(error || !data) return alert('No encontrado');
+  document.getElementById('ui_f_id').value = data.id;
+  document.getElementById('ui_f_nit').value = data.nit || '';
+  document.getElementById('ui_f_nombre').value = data.nombre || '';
+  document.getElementById('ui_f_direccion').value = data.direccion || '';
+  showSection('fundaciones');
+};
+
+window.deleteFundUI = async function(id){
+  if(!confirm('Eliminar fundación?')) return;
+  const { error } = await supabase.from('fundaciones').delete().eq('id', id);
+  if(error) return alert('Error: '+error.message);
+  loadFundaciones();
+};
+
+window.viewFundInfo = async function(id){
+  const { data } = await supabase.from('fundaciones').select('*').eq('id', id).single();
+  if(!data) return alert('No encontrado');
+  let html = `<b>${safe(data.nombre)}</b><div class="small">NIT: ${safe(data.nit)}</div><div class="small">${safe(data.direccion)}</div>`;
+  showInfo('Fundación', html);
+}
+
+/* ---------- ITEMS CRUD ---------- */
+
+async function loadItems(){
+  try{
+    const q = (document.getElementById('ui_searchItems')?.value || '').trim();
+    let query = supabase.from('items').select('*').order('nombre');
+    if(q) query = query.ilike('nombre', `%${q}%`);
+    const { data, error } = await query;
+    const box = document.getElementById('ui_itemsList');
+    if(error) { box.innerText = 'Error: '+error.message; return; }
+    box.innerHTML = '';
+    (data||[]).forEach(it=>{
+      const div=document.createElement('div'); div.className='card'; div.style.marginBottom='8px';
+      div.innerHTML = `<b>${safe(it.nombre)}</b><div class="small">$${safe(it.precio)}</div>
+        <div style="margin-top:6px"><button onclick="editItemUI(${it.id})">Editar</button> <button onclick="deleteItemUI(${it.id})" style="margin-left:8px">Eliminar</button> <button onclick="viewItemInfo(${it.id})" style="margin-left:8px">Ver</button></div>`;
+      box.appendChild(div);
+    });
+  }catch(e){ console.error(e); }
+}
+
+async function saveItemUI(){
+  const id = Number(document.getElementById('ui_it_id').value) || 0;
+  const nombre = document.getElementById('ui_it_nombre').value.trim();
+  const precio = Number(document.getElementById('ui_it_precio').value) || 0;
+  if(!nombre) return alert('Nombre requerido');
+  // prevent duplicates
+  if(!id){
+    const { data: ex } = await supabase.from('items').select('id').ilike('nombre', nombre).maybeSingle();
+    if(ex) return alert('Item ya existe');
+    const { error } = await supabase.from('items').insert({nombre,precio});
+    if(error) return alert('Error: '+error.message);
+    alert('Item creado');
+  } else {
+    const { error } = await supabase.from('items').update({nombre,precio}).eq('id', id);
+    if(error) return alert('Error: '+error.message);
+    alert('Item actualizado');
+  }
+  document.getElementById('ui_it_id').value=''; document.getElementById('ui_it_nombre').value=''; document.getElementById('ui_it_precio').value='';
+  loadItems();
+}
+
+window.editItemUI = async function(id){
+  const { data } = await supabase.from('items').select('*').eq('id', id).single();
+  if(!data) return alert('No encontrado');
+  document.getElementById('ui_it_id').value = data.id;
+  document.getElementById('ui_it_nombre').value = data.nombre;
+  document.getElementById('ui_it_precio').value = data.precio;
+  showSection('items');
+}
+
+window.deleteItemUI = async function(id){
+  if(!confirm('Eliminar item?')) return;
+  const { error } = await supabase.from('items').delete().eq('id', id);
+  if(error) return alert('Error: '+error.message);
+  loadItems();
+}
+
+window.viewItemInfo = async function(id){
+  const { data } = await supabase.from('items').select('*').eq('id', id).single();
+  if(!data) return alert('No encontrado');
+  showInfo('Item', `<b>${safe(data.nombre)}</b><div class="small">$${safe(data.precio)}</div>`);
+}
+
+/* ---------- CONDUCTORES CRUD ---------- */
+
+async function loadConductores(){
+  try{
+    const q = (document.getElementById('ui_searchDrivers')?.value || '').trim();
+    let query = supabase.from('conductores').select('*').order('nombre');
+    if(q) query = query.or(`nombre.ilike.%${q}%,documento.ilike.%${q}%`);
+    const { data, error } = await query;
+    const box = document.getElementById('ui_driversList');
+    if(error){ box.innerText = 'Error: '+error.message; return; }
+    box.innerHTML = '';
+    (data||[]).forEach(d=>{
+      const div = document.createElement('div'); div.className='card'; div.style.marginBottom='8px';
+      div.innerHTML = `<b>${safe(d.nombre)}</b><div class="small">${safe(d.documento)} — ${safe(d.telefono)}</div>
+        <div style="margin-top:6px"><button onclick="editDriverUI(${d.id})">Editar</button> <button onclick="deleteDriverUI(${d.id})" style="margin-left:8px">Eliminar</button> <button onclick="viewDriverInfo(${d.id})" style="margin-left:8px">Ver</button></div>`;
+      box.appendChild(div);
+    });
+  }catch(e){ console.error(e); }
+}
+
+async function saveDriverUI(){
+  const id = Number(document.getElementById('ui_drv_id').value) || 0;
+  const nombre = document.getElementById('ui_drv_nombre').value.trim();
+  const documento = document.getElementById('ui_drv_documento').value.trim();
+  const telefono = document.getElementById('ui_drv_telefono').value.trim();
+  if(!nombre) return alert('Nombre requerido');
+  if(!id){
+    const { data: ex } = await supabase.from('conductores').select('id').eq('documento', documento).maybeSingle();
+    if(ex) return alert('Conductor con ese documento ya existe');
+    const { error } = await supabase.from('conductores').insert({nombre,documento,telefono});
+    if(error) return alert('Error: '+error.message);
+    alert('Conductor creado');
+  } else {
+    const { error } = await supabase.from('conductores').update({nombre,documento,telefono}).eq('id', id);
+    if(error) return alert('Error: '+error.message);
+    alert('Conductor actualizado');
+  }
+  document.getElementById('ui_drv_id').value=''; document.getElementById('ui_drv_nombre').value=''; document.getElementById('ui_drv_documento').value=''; document.getElementById('ui_drv_telefono').value='';
+  loadConductores(); fillConductorSelects();
+}
+
+window.editDriverUI = async function(id){
+  const { data } = await supabase.from('conductores').select('*').eq('id', id).single();
+  if(!data) return alert('No encontrado');
+  document.getElementById('ui_drv_id').value=data.id; document.getElementById('ui_drv_nombre').value=data.nombre; document.getElementById('ui_drv_documento').value=data.documento; document.getElementById('ui_drv_telefono').value=data.telefono;
+  showSection('conductores');
+}
+
+window.deleteDriverUI = async function(id){
+  if(!confirm('Eliminar conductor?')) return;
+  const { error } = await supabase.from('conductores').delete().eq('id', id);
+  if(error) return alert('Error: '+error.message);
+  loadConductores(); fillConductorSelects();
+}
+
+window.viewDriverInfo = async function(id){
+  const { data } = await supabase.from('conductores').select('*').eq('id', id).single();
+  if(!data) return alert('No encontrado');
+  showInfo('Conductor', `<b>${safe(data.nombre)}</b><div class="small">${safe(data.documento)} — ${safe(data.telefono)}</div>`);
+}
+
+/* ---------- PLACAS CRUD ---------- */
+
+async function loadPlates(){
+  try{
+    const q = (document.getElementById('ui_searchPlates')?.value || '').trim();
+    let query = supabase.from('placas').select('*').order('placa');
+    if(q) query = query.ilike('placa', `%${q}%`);
+    const { data, error } = await query;
+    const box = document.getElementById('ui_platesList');
+    if(error){ box.innerText = 'Error: '+error.message; return; }
+    box.innerHTML='';
+    (data||[]).forEach(p=>{
+      const div=document.createElement('div'); div.className='card'; div.style.marginBottom='8px';
+      div.innerHTML = `<b>${safe(p.placa)}</b><div class="small">${safe(p.tipo)} — Conductor ID: ${safe(p.conductor_id)}</div>
+        <div style="margin-top:6px"><button onclick="editPlateUI(${p.id})">Editar</button> <button onclick="deletePlateUI(${p.id})" style="margin-left:8px">Eliminar</button> <button onclick="viewPlateInfo(${p.id})" style="margin-left:8px">Ver</button></div>`;
+      box.appendChild(div);
+    });
+  }catch(e){ console.error(e); }
+}
+
+async function savePlateUI(){
+  const id = Number(document.getElementById('ui_pl_id').value) || 0;
+  const placa = document.getElementById('ui_pl_placa').value.trim();
+  const tipo = document.getElementById('ui_pl_tipo').value.trim();
+  const conductor_id = Number(document.getElementById('ui_pl_conductor').value) || null;
+  if(!placa) return alert('Placa requerida');
+  if(!id){
+    const { data: ex } = await supabase.from('placas').select('id').eq('placa', placa).maybeSingle();
+    if(ex) return alert('Placa ya existe');
+    const { error } = await supabase.from('placas').insert({placa, tipo, conductor_id});
+    if(error) return alert('Error: '+error.message);
+    alert('Placa creada');
+  } else {
+    const { error } = await supabase.from('placas').update({placa,tipo,conductor_id}).eq('id', id);
+    if(error) return alert('Error: '+error.message);
+    alert('Placa actualizada');
+  }
+  document.getElementById('ui_pl_id').value=''; document.getElementById('ui_pl_placa').value=''; document.getElementById('ui_pl_tipo').value=''; document.getElementById('ui_pl_conductor').value='';
+  loadPlates(); fillConductorSelects();
+}
+
+window.editPlateUI = async function(id){
+  const { data } = await supabase.from('placas').select('*').eq('id', id).single();
+  if(!data) return alert('No encontrado');
+  document.getElementById('ui_pl_id').value=data.id; document.getElementById('ui_pl_placa').value=data.placa; document.getElementById('ui_pl_tipo').value=data.tipo; document.getElementById('ui_pl_conductor').value=data.conductor_id||'';
+  showSection('placas');
+}
+
+window.deletePlateUI = async function(id){
+  if(!confirm('Eliminar placa?')) return;
+  const { error } = await supabase.from('placas').delete().eq('id', id);
+  if(error) return alert('Error: '+error.message);
+  loadPlates(); fillConductorSelects();
+}
+
+window.viewPlateInfo = async function(id){
+  const { data } = await supabase.from('placas').select('*, conductor:conductores(*)').eq('id', id).single();
+  if(!data) return alert('No encontrado');
+  const html = `<b>${safe(data.placa)}</b><div class="small">${safe(data.tipo)}</div><div class="small">Conductor: ${data.conductor ? safe(data.conductor.nombre) : ''}</div>`;
+  showInfo('Placa', html);
+}
+
+/* ---------- ADMIN USERS CRUD ---------- */
+
+async function loadUsersAdmin(){
+  const { data, error } = await supabase.from('users').select('id, username, role_id').order('id');
+  const box = document.getElementById('ui_adminUsersList');
+  if(error){ box.innerText = 'Error: '+error.message; return; }
+  box.innerHTML = '';
+  (data||[]).forEach(u=>{
+    const div = document.createElement('div'); div.className='small'; div.style.marginBottom='6px';
+    div.innerHTML = `<b>${safe(u.username)}</b> — role_id:${safe(u.role_id||'')} <button onclick="deleteAdminUserUI(${u.id})" style="margin-left:8px">Eliminar</button>`;
+    box.appendChild(div);
+  });
+}
+
+async function saveAdminUserUI(){
+  const user = document.getElementById('ui_adm_user').value.trim();
+  const pass = document.getElementById('ui_adm_pass').value.trim();
+  const role_id = Number(document.getElementById('ui_adm_role').value) || null;
+  if(!user||!pass) return alert('Usuario y contraseña requeridos');
+  const { data: exists } = await supabase.from('users').select('id').eq('username', user).maybeSingle();
+  if(exists) return alert('Usuario ya existe');
+  const { error } = await supabase.from('users').insert({username:user, pass:pass, role_id});
+  if(error) return alert('Error: '+error.message);
+  alert('Usuario creado');
+  document.getElementById('ui_adm_user').value=''; document.getElementById('ui_adm_pass').value=''; document.getElementById('ui_adm_role').value='';
+  loadUsersAdmin();
+}
+
+window.deleteAdminUserUI = async function(id){
+  if(!confirm('Eliminar usuario?')) return;
+  const { error } = await supabase.from('users').delete().eq('id', id);
+  if(error) return alert('Error: '+error.message);
+  loadUsersAdmin();
+}
+
+/* ---------- Helpers: fill selects ---------- */
+async function fillConductorSelects(){
+  const sel = document.getElementById('ui_pl_conductor');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">--</option>';
+  const { data } = await supabase.from('conductores').select('*').order('nombre');
+  (data||[]).forEach(d => sel.appendChild(new Option(d.nombre, d.id)));
+}
+
+/* ---------- INIT: render UIs and initial loads ---------- */
+function initCRUDis(){
+  renderFundacionesUI();
+  renderItemsUI();
+  renderConductoresUI();
+  renderPlacasUI();
+  renderAdminUsersUI();
+
+  // initial loads
+  loadFundaciones();
+  loadItems();
+  loadConductores();
+  loadPlates();
+  loadUsersAdmin();
+  fillConductorSelects();
+}
+
+/* expose loadPlates with stable name used above */
+window.loadPlates = loadPlates;
+
+/* start CRUDis after login and also now so modules populate if admin */
+initCRUDis();
+
+<!-- END PARTE 3 -->
