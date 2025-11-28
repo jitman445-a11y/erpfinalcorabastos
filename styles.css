@@ -1,0 +1,42 @@
+</style>
+</head>
+<body>
+
+<header>
+    <div style="display:flex;align-items:center;gap:12px;">
+        <button id="toggleMenu" style="background:none;border:0;color:white;font-size:22px;cursor:pointer;">
+            ☰
+        </button>
+        <h2 style="margin:0;font-size:18px;">ERP Corabastos</h2>
+    </div>
+
+    <div>
+        <span id="currentUser" style="margin-right:12px;font-weight:600;"></span>
+        <button onclick="logout()" class="primary" style="background:#ef4444;">Cerrar sesión</button>
+    </div>
+</header>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+        <button onclick="openModule('dashboard')" id="btn_dashboard">Dashboard</button>
+        <button onclick="openModule('fundaciones')" id="btn_fundaciones">Fundaciones</button>
+        <button onclick="openModule('items')" id="btn_items">Items</button>
+        <button onclick="openModule('conductores')" id="btn_conductores">Conductores</button>
+        <button onclick="openModule('placas')" id="btn_placas">Placas</button>
+        <button onclick="openModule('puntos_envio')" id="btn_puntos_envio">Puntos de envío</button>
+        <button onclick="openModule('pedidos')" id="btn_pedidos">Pedidos</button>
+        <button onclick="openModule('usuarios')" id="btn_usuarios">Usuarios</button>
+        <button onclick="openModule('roles')" id="btn_roles">Roles</button>
+        <button onclick="openModule('auditoria')" id="btn_auditoria">Auditoría</button>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main id="main">
+        <div id="dashboard" class="module card hidden">
+            <h2>Bienvenido</h2>
+            <p>Selecciona un módulo del menú izquierdo.</p>
+        </div>
+
+        <!-- Aquí se insertarán los demás módulos (PRÓXIMA PARTE) -->
