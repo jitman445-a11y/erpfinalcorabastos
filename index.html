@@ -950,3 +950,511 @@ window.loadPlates = loadPlates;
 initCRUDis();
 
 <!-- END PARTE 3 -->
+</style>
+</head>
+<body>
+
+<header>
+    <div style="display:flex;align-items:center;gap:12px;">
+        <button id="toggleMenu" style="background:none;border:0;color:white;font-size:22px;cursor:pointer;">
+            ☰
+        </button>
+        <h2 style="margin:0;font-size:18px;">ERP Corabastos</h2>
+    </div>
+
+    <div>
+        <span id="currentUser" style="margin-right:12px;font-weight:600;"></span>
+        <button onclick="logout()" class="primary" style="background:#ef4444;">Cerrar sesión</button>
+    </div>
+</header>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+        <button onclick="openModule('dashboard')" id="btn_dashboard">Dashboard</button>
+        <button onclick="openModule('fundaciones')" id="btn_fundaciones">Fundaciones</button>
+        <button onclick="openModule('items')" id="btn_items">Items</button>
+        <button onclick="openModule('conductores')" id="btn_conductores">Conductores</button>
+        <button onclick="openModule('placas')" id="btn_placas">Placas</button>
+        <button onclick="openModule('puntos_envio')" id="btn_puntos_envio">Puntos de envío</button>
+        <button onclick="openModule('pedidos')" id="btn_pedidos">Pedidos</button>
+        <button onclick="openModule('usuarios')" id="btn_usuarios">Usuarios</button>
+        <button onclick="openModule('roles')" id="btn_roles">Roles</button>
+        <button onclick="openModule('auditoria')" id="btn_auditoria">Auditoría</button>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main id="main">
+        <div id="dashboard" class="module card hidden">
+            <h2>Bienvenido</h2>
+            <p>Selecciona un módulo del menú izquierdo.</p>
+        </div>
+
+        <!-- Aquí se insertarán los demás módulos (PRÓXIMA PARTE) -->
+<!-- ========================= -->
+<!--    MÓDULO FUNDACIONES     -->
+<!-- ========================= -->
+<div id="fundaciones" class="module card hidden">
+    <h2>Fundaciones</h2>
+
+    <form id="formFundacion">
+        <label>NIT</label>
+        <input type="text" id="f_nit" required>
+
+        <label>Nombre</label>
+        <input type="text" id="f_nombre" required>
+
+        <label>Dirección</label>
+        <input type="text" id="f_direccion" required>
+
+        <button type="submit" class="primary">Guardar Fundación</button>
+    </form>
+
+    <h3 style="margin-top:25px;">Listado de Fundaciones</h3>
+    <table class="table" id="tablaFundaciones">
+        <thead>
+            <tr>
+                <th>NIT</th>
+                <th>Nombre</th>
+                <th>Dirección</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- ========================= -->
+<!--        MÓDULO ITEMS       -->
+<!-- ========================= -->
+<div id="items" class="module card hidden">
+    <h2>Items</h2>
+
+    <form id="formItem">
+        <label>Nombre del Item</label>
+        <input type="text" id="item_nombre" required>
+
+        <label>Unidad (ej: kg, bulto, caja)</label>
+        <input type="text" id="item_unidad" required>
+
+        <button type="submit" class="primary">Guardar Item</button>
+    </form>
+
+    <h3 style="margin-top:25px;">Listado de Items</h3>
+    <table class="table" id="tablaItems">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Unidad</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<!-- ===================================== -->
+<!--           MÓDULO CONDUCTORES          -->
+<!-- ===================================== -->
+<div id="conductores" class="module card hidden">
+    <h2>Conductores</h2>
+
+    <form id="formConductor">
+        <label>Cédula</label>
+        <input type="text" id="c_cedula" required>
+
+        <label>Nombre</label>
+        <input type="text" id="c_nombre" required>
+
+        <button type="submit" class="primary">Guardar Conductor</button>
+    </form>
+
+    <h3 style="margin-top:25px;">Listado de Conductores</h3>
+    <table class="table" id="tablaConductores">
+        <thead>
+            <tr>
+                <th>Cédula</th>
+                <th>Nombre</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+
+<!-- ===================================== -->
+<!--               MÓDULO PLACAS           -->
+<!-- ===================================== -->
+<div id="placas" class="module card hidden">
+    <h2>Placas</h2>
+
+    <form id="formPlaca">
+        <label>Placa</label>
+        <input type="text" id="p_placa" required>
+
+        <label>Descripción (opcional)</label>
+        <input type="text" id="p_desc">
+
+        <button type="submit" class="primary">Guardar Placa</button>
+    </form>
+
+    <h3 style="margin-top:25px;">Listado de Placas</h3>
+    <table class="table" id="tablaPlacas">
+        <thead>
+            <tr>
+                <th>Placa</th>
+                <th>Descripción</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+
+<!-- ====================================== -->
+<!--           MÓDULO PUNTOS DE ENVÍO       -->
+<!-- ====================================== -->
+<div id="puntos_envio" class="module card hidden">
+    <h2>Puntos de envío</h2>
+
+    <form id="formPuntoEnvio">
+        <label>NIT de la Fundación</label>
+        <input type="text" id="pe_nit" autocomplete="off" required>
+        <div id="autoFundPE" class="autocomplete"></div>
+
+        <label>Fundación</label>
+        <input type="text" id="pe_fundacion" disabled>
+
+        <label>Nombre del Punto</label>
+        <input type="text" id="pe_nombre" required>
+
+        <label>Dirección del Punto de Envío</label>
+        <input type="text" id="pe_direccion" required>
+
+        <button type="submit" class="primary">Guardar Punto de Envío</button>
+    </form>
+
+    <h3 style="margin-top:25px;">Listado de Puntos de Envío</h3>
+    <table class="table" id="tablaPuntosEnvio">
+        <thead>
+            <tr>
+                <th>Fundación</th>
+                <th>Punto</th>
+                <th>Dirección</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<!-- ====================================== -->
+<!--              MÓDULO PEDIDOS            -->
+<!-- ====================================== -->
+<div id="pedidos" class="module card hidden">
+    <h2>Crear Pedido</h2>
+
+    <form id="formPedido">
+
+        <!-- FUNDACIÓN -->
+        <label>NIT Fundación</label>
+        <input type="text" id="ped_nit" autocomplete="off" required>
+        <div id="autoPedNit" class="autocomplete"></div>
+
+        <label>Fundación</label>
+        <input type="text" id="ped_fundacion" disabled>
+
+        <!-- PUNTO DE ENVÍO -->
+        <label>Punto de Envío</label>
+        <select id="ped_punto_envio" required></select>
+
+        <label>Dirección del Punto de Envío</label>
+        <input type="text" id="ped_direccion_punto" disabled>
+
+        <div style="display:flex;gap:10px;margin-top:8px;">
+            <button type="button" class="primary" style="background:#0a57ff;"
+                id="btnVerMapaPE">
+                Ver en Google Maps
+            </button>
+
+            <button type="button" class="primary" style="background:#16a34a;"
+                id="btnWazePE">
+                Abrir en Waze
+            </button>
+        </div>
+
+        <hr style="margin:20px 0;">
+
+        <!-- CONDUCTOR -->
+        <label>Conductor (Cédula)</label>
+        <input type="text" id="ped_conductor" autocomplete="off" required>
+        <div id="autoPedConductor" class="autocomplete"></div>
+
+        <label>Nombre Conductor</label>
+        <input type="text" id="ped_conductor_nombre" disabled>
+
+        <!-- PLACA -->
+        <label>Placa</label>
+        <input type="text" id="ped_placa" autocomplete="off" required>
+        <div id="autoPedPlaca" class="autocomplete"></div>
+
+        <label>Descripción Vehículo</label>
+        <input type="text" id="ped_placa_desc" disabled>
+
+        <hr style="margin:20px 0;">
+
+        <!-- ITEMS -->
+        <h3>Agregar Items</h3>
+
+        <div style="display:flex;gap:10px;">
+            <select id="ped_item_select" style="flex:1;"></select>
+
+            <input type="number" id="ped_item_cant" placeholder="Cantidad" min="1" required
+                   style="width:120px;">
+
+            <button type="button" class="primary" id="addItemPedido">
+                Añadir
+            </button>
+        </div>
+
+        <table class="table" id="tablaItemsPedido" style="margin-top:15px;">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Unidad</th>
+                    <th>Cantidad</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <button type="submit" class="primary" style="margin-top:20px;">
+            Guardar Pedido
+        </button>
+    </form>
+
+    <hr style="margin:30px 0;">
+
+    <h2>Pedidos Creados</h2>
+    <table class="table" id="tablaPedidos">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Fundación</th>
+                <th>Punto</th>
+                <th>Fecha</th>
+                <th>Conductor</th>
+                <th>Placa</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+/* ===========================================================
+   USUARIOS + ROLES
+   =========================================================== */
+
+let CURRENT_USER = null;
+let CURRENT_ROLE = null;
+let CURRENT_PERMISSIONS = [];
+
+/* -------------------------
+   INICIO DE SESIÓN AUTOMÁTICO
+   ------------------------- */
+async function cargarUsuarioActual() {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        show("login");
+        return;
+    }
+
+    CURRENT_USER = user;
+
+    // cargar su rol
+    const { data: perfil } = await supabase
+        .from("usuarios")
+        .select("id, nombre, email, rol_id, roles(nombre)")
+        .eq("email", user.email)
+        .single();
+
+    CURRENT_ROLE = perfil?.roles?.nombre || null;
+
+    // cargar permisos del rol
+    if (perfil?.rol_id) {
+        const { data: permisos } = await supabase
+            .from("role_permissions")
+            .select("*")
+            .eq("role_id", perfil.rol_id);
+
+        CURRENT_PERMISSIONS = permisos || [];
+    }
+
+    renderMiCuenta(perfil);
+    aplicarPermisos();
+}
+cargarUsuarioActual();
+
+/* -------------------------
+   MOSTRAR MI CUENTA
+   ------------------------- */
+function renderMiCuenta(user) {
+    const box = document.getElementById("miCuentaDatos");
+
+    if (!user) {
+        box.innerHTML = "<p>Error cargando usuario.</p>";
+        return;
+    }
+
+    box.innerHTML = `
+        <b>Nombre:</b> ${user.nombre}<br>
+        <b>Email:</b> ${user.email}<br>
+        <b>Rol:</b> ${user.roles?.nombre || "Sin rol"}<br>
+    `;
+}
+
+/* -------------------------
+   CERRAR SESIÓN
+   ------------------------- */
+document.getElementById("btnCerrarSesion").onclick = async () => {
+    await supabase.auth.signOut();
+    location.reload();
+};
+
+/* -------------------------
+   CARGAR LISTA DE ROLES
+   ------------------------- */
+async function cargarRolesEnSelects() {
+    const { data: roles } = await supabase
+        .from("roles")
+        .select("*")
+        .order("name");
+
+    const sel = document.getElementById("newUser_rol");
+
+    sel.innerHTML = roles
+        .map(r => `<option value="${r.id}">${r.name}</option>`)
+        .join("");
+}
+cargarRolesEnSelects();
+
+/* -------------------------
+   CREAR USUARIO
+   ------------------------- */
+document.getElementById("formCrearUsuario").onsubmit = async (e) => {
+    e.preventDefault();
+
+    const nombre = document.getElementById("newUser_name").value;
+    const email = document.getElementById("newUser_email").value;
+    const pass = document.getElementById("newUser_pass").value;
+    const rol = document.getElementById("newUser_rol").value;
+
+    // crear usuario en auth
+    const { data: authUser, error: e1 } = await supabase.auth.signUp({
+        email,
+        password: pass
+    });
+    if (e1) return alert(e1.message);
+
+    // guardar en tabla usuarios
+    await supabase.from("usuarios").insert({
+        nombre,
+        email,
+        rol_id: rol
+    });
+
+    alert("Usuario creado");
+    cargarUsuarios();
+};
+
+/* -------------------------
+   LISTAR USUARIOS
+   ------------------------- */
+async function cargarUsuarios() {
+    const { data: usuarios } = await supabase
+        .from("usuarios")
+        .select("id, nombre, email, roles(name)")
+        .order("id");
+
+    const tbody = document.querySelector("#tablaUsuarios tbody");
+    tbody.innerHTML = "";
+
+    usuarios.forEach(u => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${u.id}</td>
+            <td>${u.nombre}</td>
+            <td>${u.email}</td>
+            <td>${u.roles?.name || "Sin rol"}</td>
+            <td>
+                <button class="primary" onclick="editarUsuario(${u.id})">
+                    Editar
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+cargarUsuarios();
+
+/* -------------------------
+   CONTROL DE ACCESO (SIDEBAR)
+   ------------------------- */
+function aplicarPermisos() {
+    if (!CURRENT_PERMISSIONS.length) return;
+
+    CURRENT_PERMISSIONS.forEach(p => {
+        if (!p.can_view) {
+            const btn = document.querySelector(`#sidebar [data-sec="${p.module}"]`);
+            if (btn) btn.style.display = "none";
+        }
+    });
+}
+<!-- ====================================== -->
+<!--         LOGIN MODERNO Y PROFESIONAL     -->
+<!-- ====================================== -->
+<div id="loginScreen" style="
+  position:fixed; inset:0; display:none;
+  background:#0b1220; color:white;
+  align-items:center; justify-content:center;
+  z-index:999999;
+">
+  <div style="
+    width:340px; background:#ffffff; color:#0f172a;
+    padding:22px; border-radius:14px;
+    box-shadow:0 8px 40px rgba(0,0,0,0.45);
+    animation: fadeIn .3s ease;
+  ">
+    <h2 style="margin:0; text-align:center;">Iniciar Sesión</h2>
+
+    <label style="margin-top:15px;">Correo</label>
+    <input id="login_email" type="email" placeholder="usuario@erp.com">
+
+    <label style="margin-top:8px;">Contraseña</label>
+    <input id="login_pass" type="password" placeholder="••••••••">
+
+    <div id="login_msg" class="small" style="color:#d40000; margin-top:8px; display:none;"></div>
+
+    <button id="btn_do_login" class="primary" style="width:100%; margin-top:14px;">
+      Ingresar
+    </button>
+
+    <button id="btn_recuperar" style="
+      width:100%; margin-top:10px;
+      background:none; border:0; color:#0a57ff; cursor:pointer;
+    ">
+      ¿Olvidaste tu contraseña?
+    </button>
+  </div>
+</div>
+
+<style>
+@keyframes fadeIn {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0);   }
+}
+</style>
+
